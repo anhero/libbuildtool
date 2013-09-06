@@ -1,0 +1,182 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'ostruct'
+require 'json'
+require 'fileutils'
+
+require_relative 'classes/functions'
+require_relative 'classes/os'
+require_relative 'classes/library'
+require_relative 'classes/fetch'
+require_relative 'classes/unpack'
+require_relative 'classes/build'
+require_relative 'classes/install'
+
+
+def showBanner
+	return unless $options.show_banner
+	puts <<BANNER
+.__  ._____.  ___.         .__.__       .___ __                .__   
+|  | |__\_ |__\_ |__  __ __|__|  |    __| _//  |_  ____   ____ |  |  
+|  | |  || __ \| __ \|  |  \  |  |   / __ |\   __\/  _ \ /  _ \|  |  
+|  |_|  || \_\ \ \_\ \  |  /  |  |__/ /_/ | |  | (  <_> |  <_> )  |__
+|____/__||___  /___  /____/|__|____/\____ | |__|  \____/ \____/|____/
+             \/    \/                    \/                          
+BANNER
+end
+
+
+def puts_banner text, col = 40, char = '*'
+	puts ''.rjust(col, char)
+	puts "*#{text.center(col -2 )}*"
+	puts ''.rjust(col, char)
+end
+
+
+DEFAULT_LIBRARIES_LIST = 'libraries.desc'
+$options = OpenStruct.new(
+		:show_banner    => true,
+		:libraries_list   => DEFAULT_LIBRARIES_LIST,
+		:rebuild => false,
+		:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}"
+)
+
+OptionParser.new do |opts|
+	opts.banner =  "Usage : #{File.basename $PROGRAM_NAME} [OPTION]"
+	opts.separator 'Execute the build libraries listed by the given libraries list.'
+
+	opts.separator ''
+	opts.separator 'Global options'
+
+	opts.on('-h', '--help', 'Shows this help.') do
+		showBanner
+		puts opts
+		exit
+	end
+
+	opts.on('-r', '--rebuild', 'Rebuild all the lib instead of building the remaining libs.') do
+		$options.rebuild = true
+	end
+
+	opts.on('--no-banner', 'Do not output the ASCII art banner.') do
+		$options.show_banner = false
+	end
+
+
+	opts.on('-l', '--recipe-list', '=FILENAME', 'Recipe list to use.', "Default: #{DEFAULT_LIBRARIES_LIST}") do |file|
+		$options.libraries_list = file
+	end
+
+end.parse!
+
+showBanner
+
+libraries = []
+
+begin
+	eval(File.open("#{$options.libraries_list}").read)
+rescue Exception => e
+	puts "Crashed while reading the libraries list!!!"
+	puts e
+end
+
+
+
+currentDir = Dir.pwd
+workDir = "#{currentDir}/workdir"
+buildedJsonPath = "#{workDir}/builded.json"
+srcDir =  "#{currentDir}/workdir/src"
+buildDir =  "#{currentDir}/workdir/build"
+
+buildDest =  "#{currentDir}/#{`uname -s`}/#{`uname -m`}"
+
+buildedJson = []
+if Dir.exist? workDir
+	if $options.rebuild
+		FileUtils.rm_rf buildDir
+	else
+		buildedJson = JSON.parse(File.read(buildedJsonPath)) if File.exist? buildedJsonPath
+	end
+
+end
+
+	FileUtils.mkdir_p $options.install_dir
+	FileUtils.mkdir_p workDir
+	FileUtils.mkdir_p srcDir
+	FileUtils.mkdir_p buildDir
+
+buildOptions = OpenStruct.new(:prefix => $options.install_dir)
+
+libraries.each do |libraryDesc|
+		next if buildedJson.include? libraryDesc
+		begin
+			puts
+			puts_banner libraryDesc
+			puts
+
+			library = Library.new
+			library.fetch = Fetch.http
+			library.prepareBuild = Functions.gotoSubDir
+			library.build = Build.configure_make
+			library.install = Install.make_install
+
+			eval(File.open("#{libraryDesc}.desc").read)
+
+			Dir.chdir srcDir
+			if not File.exist? library.archive and library.fetch
+				scriptSuccess = library.fetch.call library
+				throw "Fetch script failed for #{library.name}" if not scriptSuccess
+			end
+			archiveIsValid = true
+			archiveIsValid = Functions.checkFileHash library.hash, library.archive if library.hash
+
+			if not archiveIsValid
+				throw "Hash for #{library.name} do not match with the given archive."
+			end
+
+			FileUtils.mkdir_p buildDir
+			if not library.unpack
+				if(library.archive.include? '.tar')
+					library.unpack = Unpack.tar
+				elsif(library.archive.include? '.zip')
+					library.unpack = Unpack.zip
+				end
+			end
+			FileUtils.rm_rf "#{buildDir}/#{library.name}" if Dir.exist? "#{buildDir}/#{library.name}"
+			FileUtils.mkdir_p "#{buildDir}/#{library.name}"
+			scriptSuccess = library.unpack.call library, srcDir, "#{buildDir}/#{library.name}"
+			throw "Unpack script failed for #{library.name}" if not scriptSuccess
+			Dir.chdir "#{buildDir}/#{library.name}"
+
+			if library.prepareBuild
+				scriptSuccess = library.prepareBuild.call library
+				throw "PrepareBuild script failed for #{library.name}" if not scriptSuccess
+			end
+
+			if library.build
+				scriptSuccess = library.build.call library, buildOptions
+				throw "Build script failed for #{library.name}" if not scriptSuccess
+			end
+
+
+			if library.install
+				library.install = Install.make_install if not library.install
+				scriptSuccess = library.install.call library, buildOptions
+				throw "Install script failed for #{library.name}" if not scriptSuccess
+			end
+
+
+			Dir.chdir currentDir
+			buildedJson << libraryDesc
+			File.write(buildedJsonPath, JSON.generate(buildedJson))
+
+		rescue Exception => e
+			FileUtils.rm_rf buildDir
+			puts "Crashed while building #{libraryDesc}!!"
+			puts e
+			abort
+		end
+end
+
+puts_banner 'Done!'
