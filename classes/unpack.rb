@@ -1,4 +1,4 @@
-class Unpack
+module Unpack
 	def self.tar
 		lambda do |library, srcDir, destDir|
 			system("tar -C #{destDir} -xf #{srcDir}/#{library.archive}")

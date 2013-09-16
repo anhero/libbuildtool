@@ -135,9 +135,9 @@ libraries.each do |libraryDesc|
 				throw "Hash for #{library.name} do not match with the given archive."
 			end
 
-			FileUtils.mkdir_p buildDir
+			mkdir_p buildDir
 			if not library.unpack
-				if(library.archive.include? '.tar')
+				if(library.archive.include? '.tar' or library.archive.include? 'tgz')
 					library.unpack = Unpack.tar
 				elsif(library.archive.include? '.zip')
 					library.unpack = Unpack.zip

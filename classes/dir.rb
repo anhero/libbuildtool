@@ -1,4 +1,4 @@
-class Dir
+module Dir
 	# This is an ugly function
 	# TODO: Fix to properly handle strings and hashes
 	# Man... String does have include?... though it wouldn't work properly...
