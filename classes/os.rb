@@ -12,6 +12,6 @@ module OS
 	end
 
 	def OS.linux?
-		OS.unix? and not OS.mac?
+		OS.unix? and not OS.osx?
 	end
 end

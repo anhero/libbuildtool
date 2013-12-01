@@ -9,7 +9,7 @@ module Functions
 			listing = Dir.entries '.'
 			count = 4
 			count -=1 if not listing.include? '"__MACOSX"'
-			return Dir.chdir(listing[count -1]) == 0 if listing.length == count
+			return (Dir.chdir(listing[count -1]) == 0) if listing.length == count
 			return false
 		end
 	end

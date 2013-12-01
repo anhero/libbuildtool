@@ -39,7 +39,8 @@ $options = OpenStruct.new(
 		:show_banner    => true,
 		:libraries_list   => DEFAULT_LIBRARIES_LIST,
 		:rebuild => false,
-		:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}"
+		:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
+		:platform => nil
 )
 
 OptionParser.new do |opts|
@@ -66,6 +67,10 @@ OptionParser.new do |opts|
 
 	opts.on('-l', '--recipe-list', '=FILENAME', 'Recipe list to use.', "Default: #{DEFAULT_LIBRARIES_LIST}") do |file|
 		$options.libraries_list = file
+	end
+
+	opts.on('-p', '--platform', '=PLATFORM', 'Name of the platform file to use.') do |platform|
+		$options.platform = platform
 	end
 
 end.parse!
@@ -100,8 +105,11 @@ if Dir.exist? workDir
 	end
 
 end
+	FileUtils.rm_rf buildDir if Dir.exist? buildDir
 
 	FileUtils.mkdir_p $options.install_dir
+
+
 	FileUtils.mkdir_p workDir
 	FileUtils.mkdir_p srcDir
 	FileUtils.mkdir_p buildDir
@@ -135,7 +143,7 @@ libraries.each do |libraryDesc|
 				throw "Hash for #{library.name} do not match with the given archive."
 			end
 
-			mkdir_p buildDir
+			FileUtils.mkdir_p buildDir
 			if not library.unpack
 				if(library.archive.include? '.tar' or library.archive.include? 'tgz')
 					library.unpack = Unpack.tar
@@ -172,7 +180,7 @@ libraries.each do |libraryDesc|
 			File.write(buildedJsonPath, JSON.generate(buildedJson))
 
 		rescue Exception => e
-			FileUtils.rm_rf buildDir
+			#FileUtils.rm_rf buildDir
 			puts "Crashed while building #{libraryDesc}!!"
 			puts e
 			abort

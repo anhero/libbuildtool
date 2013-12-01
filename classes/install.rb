@@ -16,7 +16,8 @@ class Install
 				#failed ||= (not system("cp -prf #{header} #{options.prefix}/include"))
 				dest = "#{options.prefix}/include/#{header}"
 				FileUtils.mkdir_p File.dirname dest
-				FileUtils.copy_file header, "#{options.prefix}/include/#{header}"
+				FileUtils.rm "#{options.prefix}/include/#{header}" if File.exist? "#{options.prefix}/include/#{header}"
+				FileUtils.cp header, "#{options.prefix}/include/#{header}"
 			end
 			return (not failed)
 		end
