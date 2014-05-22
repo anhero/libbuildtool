@@ -12,6 +12,7 @@ require_relative 'classes/fetch'
 require_relative 'classes/unpack'
 require_relative 'classes/build'
 require_relative 'classes/install'
+require_relative 'classes/platforms'
 
 
 def showBanner
@@ -33,52 +34,89 @@ def puts_banner text, col = 40, char = '*'
 	puts ''.rjust(col, char)
 end
 
+###############################################################################
+# Options and parameters handling                                             #
+###############################################################################
 
-DEFAULT_LIBRARIES_LIST = 'libraries.desc'
-$options = OpenStruct.new(
-		:show_banner    => true,
-		:libraries_list   => DEFAULT_LIBRARIES_LIST,
-		:rebuild => false,
-		:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
-		:platform => nil
-)
+	DEFAULT_LIBRARIES_LIST = 'libraries.desc'
+	$options = OpenStruct.new(
+			:show_banner    => true,
+			:libraries_list   => DEFAULT_LIBRARIES_LIST,
+			:rebuild => false,
+			:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
+			:platform => nil
+	)
 
-OptionParser.new do |opts|
-	opts.banner =  "Usage : #{File.basename $PROGRAM_NAME} [OPTION]"
-	opts.separator 'Execute the build libraries listed by the given libraries list.'
+	@optionParser = OptionParser.new do |opts|
+		opts.banner =  "Usage : #{File.basename $PROGRAM_NAME} [OPTION]"
+		opts.separator 'Execute the build libraries listed by the given libraries list.'
 
-	opts.separator ''
-	opts.separator 'Global options'
+		opts.separator ''
+		opts.separator 'Global options'
 
-	opts.on('-h', '--help', 'Shows this help.') do
-		showBanner
-		puts opts
-		exit
+		opts.on('-h', '--help', 'Shows this help.') do
+			showBanner
+			puts opts
+			if $options.platform.respond_to? 'list_options'
+				$options.platform.list_options
+			end
+			exit
+		end
+
+		opts.on('-r', '--rebuild', 'Rebuild all the lib instead of building the remaining libs.') do
+			$options.rebuild = true
+		end
+
+		opts.on('--no-banner', 'Do not output the ASCII art banner.') do
+			$options.show_banner = false
+		end
+
+
+		opts.on('-l', '--libraries-list', '=FILENAME', 'Libraries list to use.', "Default: #{DEFAULT_LIBRARIES_LIST}") do |file|
+			$options.libraries_list = file
+		end
+
+		opts.separator ''
+		opts.separator 'Platform options'
+		opts.on('--list-platforms', 'Prints a list of available platforms.') do
+			puts 'List of available platforms:'
+			Platforms.list_classes.each do |g|
+				puts "  #{g}"
+			end
+			exit 0
+		end
+
+		opts.on('-p', '--platform', '=PLATFORM', 'Name of the platform file to use.') do |platform|
+			$options.platform = Platforms.get_platform platform
+			$options.platform = $options.platform.new
+			$options.platformName = platform
+		end
+
+		opts.on('--list-platform-options', 'Lists the options of the platform.') do
+			unless $options.platform
+				raise 'The platform has to be selected before listing its options.'
+			end
+			unless $options.platform.respond_to? 'list_options'
+				raise 'The platform has no way to list its options.'
+			end
+			$options.platform.list_options
+			exit 0
+		end
+
 	end
+@optionParser.permute!
 
-	opts.on('-r', '--rebuild', 'Rebuild all the lib instead of building the remaining libs.') do
-		$options.rebuild = true
-	end
-
-	opts.on('--no-banner', 'Do not output the ASCII art banner.') do
-		$options.show_banner = false
-	end
+$options.platform.permute! if 	$options.platform
 
 
-	opts.on('-l', '--recipe-list', '=FILENAME', 'Recipe list to use.', "Default: #{DEFAULT_LIBRARIES_LIST}") do |file|
-		$options.libraries_list = file
-	end
 
-	opts.on('-p', '--platform', '=PLATFORM', 'Name of the platform file to use.') do |platform|
-		$options.platform = platform
-	end
-
-end.parse!
 
 showBanner
 
 libraries = []
 
+
+#parsing libraries.desc
 begin
 	eval(File.open("#{$options.libraries_list}").read)
 rescue Exception => e
@@ -94,7 +132,7 @@ buildedJsonPath = "#{workDir}/builded.json"
 srcDir =  "#{currentDir}/workdir/src"
 buildDir =  "#{currentDir}/workdir/build"
 
-buildDest =  "#{currentDir}/#{`uname -s`}/#{`uname -m`}"
+#buildDest =  "#{currentDir}/#{`uname -s`}/#{`uname -m`}"
 
 buildedJson = []
 if Dir.exist? workDir
@@ -114,10 +152,18 @@ end
 	FileUtils.mkdir_p srcDir
 	FileUtils.mkdir_p buildDir
 
-buildOptions = OpenStruct.new(:prefix => $options.install_dir)
+masterBuildOptions = nil
+if defined? $options.platform.buildOptions
+	masterBuildOptions = $options.platform.buildOptions
+else
+	masterBuildOptions =  OpenStruct.new()
+end
+masterBuildOptions.prefix = $options.install_dir
 
 libraries.each do |libraryDesc|
 		next if buildedJson.include? libraryDesc
+		buildOptions = masterBuildOptions.clone
+
 		begin
 			puts
 			puts_banner libraryDesc
@@ -131,11 +177,14 @@ libraries.each do |libraryDesc|
 
 			eval(File.open("#{libraryDesc}.desc").read)
 
+### FETCH ###
 			Dir.chdir srcDir
 			if not File.exist? library.archive and library.fetch
 				scriptSuccess = library.fetch.call library
 				throw "Fetch script failed for #{library.name}" if not scriptSuccess
 			end
+
+### HASH ###
 			archiveIsValid = true
 			archiveIsValid = Functions.checkFileHash library.hash, library.archive if library.hash
 
@@ -143,6 +192,7 @@ libraries.each do |libraryDesc|
 				throw "Hash for #{library.name} do not match with the given archive."
 			end
 
+### UNPACK ###
 			FileUtils.mkdir_p buildDir
 			if not library.unpack
 				if(library.archive.include? '.tar' or library.archive.include? 'tgz')
@@ -155,19 +205,23 @@ libraries.each do |libraryDesc|
 			FileUtils.mkdir_p "#{buildDir}/#{library.name}"
 			scriptSuccess = library.unpack.call library, srcDir, "#{buildDir}/#{library.name}"
 			throw "Unpack script failed for #{library.name}" if not scriptSuccess
-			Dir.chdir "#{buildDir}/#{library.name}"
 
+
+
+### PREPARE BUILD ###
+			Dir.chdir "#{buildDir}/#{library.name}"
 			if library.prepareBuild
-				scriptSuccess = library.prepareBuild.call library
+				scriptSuccess = library.prepareBuild.call library, buildOptions
 				throw "PrepareBuild script failed for #{library.name}" if not scriptSuccess
 			end
 
+### BUILD ###
 			if library.build
 				scriptSuccess = library.build.call library, buildOptions
 				throw "Build script failed for #{library.name}" if not scriptSuccess
 			end
 
-
+### INSTALL ###
 			if library.install
 				library.install = Install.make_install if not library.install
 				scriptSuccess = library.install.call library, buildOptions

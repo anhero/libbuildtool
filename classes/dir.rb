@@ -1,4 +1,4 @@
-module Dir
+class Dir
 	# This is an ugly function
 	# TODO: Fix to properly handle strings and hashes
 	# Man... String does have include?... though it wouldn't work properly...
@@ -13,4 +13,12 @@ module Dir
 		end
 	end
 
+
+	def self.gotoSubDir
+		listing = Dir.entries '.'
+		count = 4
+		count -=1 if not listing.include? '"__MACOSX"'
+		return (Dir.chdir(listing[count -1]) == 0) if listing.length == count
+		return false
+	end
 end

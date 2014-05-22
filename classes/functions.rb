@@ -1,16 +1,13 @@
 require 'digest'
+require_relative 'dir'
 module Functions
 	def self.execAvailable name
 		system("which #{name} &> /dev/null")
 	end
 
 	def self.gotoSubDir
-		lambda do |library|
-			listing = Dir.entries '.'
-			count = 4
-			count -=1 if not listing.include? '"__MACOSX"'
-			return (Dir.chdir(listing[count -1]) == 0) if listing.length == count
-			return false
+		lambda do |library, options|
+			return Dir.gotoSubDir()
 		end
 	end
 
