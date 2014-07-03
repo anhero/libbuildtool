@@ -153,8 +153,8 @@ end
 	FileUtils.mkdir_p buildDir
 
 masterBuildOptions = nil
-if defined? $options.platform.buildOptions
-	masterBuildOptions = $options.platform.buildOptions
+if defined? $options.platform.buildOptions and not $options.platform.buildOptions.nil?
+  masterBuildOptions = $options.platform.buildOptions
 else
 	masterBuildOptions =  OpenStruct.new()
 end

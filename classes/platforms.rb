@@ -31,10 +31,16 @@ module Platforms
 	end
 
 	def self.get_platform platform_name
-		#TODO: Read a list of available paths
+    folders = ['.', @base_dir]
+    platform_package_path = ''
+    folders.each do |folder|
+      platform_package_path = "#{folder}/#{platform_name}.plat"
+      if Dir.exists? platform_package_path  then
+        break
+      end
 
-		platform_package_path = @base_dir + platform_name + ".plat"
-		unless Dir.exists? platform_package_path
+    end
+		unless platform_package_path != ''
 			puts platform_package_path
 			raise "The platform asked for (#{platform_name}) does not exist."
 			#TODO : Output all searched for folders.
@@ -52,27 +58,30 @@ module Platforms
 		platforms = []
 		#TODO: Read from list of available paths.
 		#folder will be the block parameter.
-		folder = @base_dir
-		Dir.entries(folder).each do |d|
-			next if d == '.' || d == '..'
+    folders = [@base_dir, '.']
+    folders.each do |folder|
+      Dir.entries(folder).each do |d|
+        next if d == '.' || d == '..'
 
-			if File.directory? folder + d
-				d = d[0..d.rindex(".")-1]
+        if File.directory? "#{folder}/#{d}" and d.include? '.plat'
+          d = d[0..d.rindex(".")-1]
 
-				platform = self.get_platform d
-				if defined? platform.shortDesc
-					platforms << "#{d} -- #{platform.shortDesc}"
-				else
-					platforms << d
-				end
-			else
-				##TODO: Only on most verbose level of output...
-				#$stderr.puts "In folder #{folder}, found #{d}, which is not a platform package."
-			end
+          platform = self.get_platform d
+          if defined? platform.shortDesc
+            platforms << "#{d} -- #{platform.shortDesc}"
+          else
+            platforms << d
+          end
+        else
+          ##TODO: Only on most verbose level of output...
+          #$stderr.puts "In folder #{folder}, found #{d}, which is not a platform package."
+        end
 
 
-		end
+      end
+    end
 
-		platforms
+
+    platforms
 	end
 end

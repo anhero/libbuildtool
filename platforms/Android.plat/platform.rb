@@ -3,13 +3,18 @@ module Platforms
 
 
 		def initialize
-			@buildOptions = OpenStruct.new(:configureOptions => '--host=arm-android-linux', :arch => 'arm')
+			@buildOp tions = OpenStruct.new(:configureOptions => '--host=arm-android-linux', :arch => 'arm')
 			$options.install_dir = "#{Dir.pwd}/Android/#{@buildOptions.arch}"
 
 			$options.compiler if $options.compiler == nil
 			@optionParser = OptionParser.new do |opts|
 				opts.on('-a', '--arch', '=ARCHITECTURE', 'Architecture', "Default: arm") do |arch|
 					@buildOptions.arch = arch
+					if arch == 'arm' then
+						@buildOptions.configureOptions = '--host=arm-android-linux'
+					elsif arch == 'x86'
+						@buildOptions.configureOptions = '--host=x86-android-linux'
+					end
 					$options.install_dir = "#{Dir.pwd}/Android/#{@buildOptions.arch}"
 				end
 			end
