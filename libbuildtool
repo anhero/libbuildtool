@@ -78,7 +78,7 @@ end
 
 		opts.separator ''
 		opts.separator 'Platform options'
-		opts.on('--list-platforms', 'Prints a list of available platforms.') do
+		opts.on('-P', '--list-platforms', 'Prints a list of available platforms.') do
 			puts 'List of available platforms:'
 			Platforms.list_classes.each do |g|
 				puts "  #{g}"
