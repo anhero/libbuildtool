@@ -3,7 +3,7 @@ module Platforms
 
 
 		def initialize
-			@buildOp tions = OpenStruct.new(:configureOptions => '--host=arm-android-linux', :arch => 'arm')
+			@buildOptions = OpenStruct.new(:configureOptions => '--host=arm-android-linux', :arch => 'arm')
 			$options.install_dir = "#{Dir.pwd}/Android/#{@buildOptions.arch}"
 
 			$options.compiler if $options.compiler == nil
