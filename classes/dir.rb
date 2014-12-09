@@ -15,10 +15,17 @@ class Dir
 
 
 	def self.gotoSubDir
+		# This dirty function goes into a subdirectory when
+		# only one subdirectory is available.
+		#
+		# Those folders are to be ignored.
+		to_ignore = ["__MACOSX", ".", ".."]
 		listing = Dir.entries '.'
-		count = 4
-		count -=1 if not listing.include? '"__MACOSX"'
-		return (Dir.chdir(listing[count -1]) == 0) if listing.length == count
+		to_ignore.each do |ignored|
+			listing.delete ignored
+		end
+		# If there's only one component in the directory, go into it.
+		return Dir.chdir(listing.first) if listing.length == 1
 		return false
 	end
 end
