@@ -11,7 +11,7 @@ module Build
 			buildCommand += "WINDRES=\"#{options.WINDRES}\" " if defined? options.WINDRES
 
 			buildCommand += "#{options.environment} " if defined? options.environment
-			buildCommand += "LIBTOOL=ranlib ./configure #{options.configureOptions} --prefix=#{options.prefix} && make"
+			buildCommand += "./configure #{options.configureOptions} --prefix=#{options.prefix} && make"
 			puts buildCommand
 			system(buildCommand)
 		end

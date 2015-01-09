@@ -14,6 +14,7 @@ require_relative 'classes/build'
 require_relative 'classes/install'
 require_relative 'classes/platforms'
 
+currentDir = Dir.pwd
 
 def showBanner
 	return unless $options.show_banner
@@ -34,9 +35,9 @@ def puts_banner text, col = 40, char = '*'
 	puts ''.rjust(col, char)
 end
 
-###############################################################################
-# Options and parameters handling                                             #
-###############################################################################
+#######################################
+### Options and parameters handling ###
+#######################################
 
 	DEFAULT_LIBRARIES_LIST = 'libraries.desc'
 	$options = OpenStruct.new(
@@ -44,6 +45,7 @@ end
 			:libraries_list   => DEFAULT_LIBRARIES_LIST,
 			:rebuild => false,
 			:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
+			:work_dir => "#{currentDir}/workdir",
 			:platform => nil
 	)
 
@@ -124,16 +126,21 @@ rescue Exception => e
 	puts e
 end
 
+###########################
+### Settings resolution ###
+###########################
 
-
-currentDir = Dir.pwd
-workDir = "#{currentDir}/workdir"
+workDir = $options.work_dir
 buildedJsonPath = "#{workDir}/builded.json"
 srcDir =  "#{currentDir}/workdir/src"
 buildDir =  "#{currentDir}/workdir/build"
 
-#buildDest =  "#{currentDir}/#{`uname -s`}/#{`uname -m`}"
 
+
+
+#############################
+### Directory Preparation ###
+#############################
 buildedJson = []
 if Dir.exist? workDir
 	if $options.rebuild
@@ -160,6 +167,9 @@ else
 end
 masterBuildOptions.prefix = $options.install_dir
 
+#################################
+### Libraries build iteration ###
+################################
 libraries.each do |libraryDesc|
 		next if buildedJson.include? libraryDesc
 		buildOptions = masterBuildOptions.clone
