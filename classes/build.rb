@@ -1,6 +1,8 @@
 module Build
 	def self.configure_make
 		lambda do |library, options|
+			Dir.chdir "#{library.work_dir}/#{library.build_subdir}"
+
 			buildCommand = ""
 			buildCommand += "CC=\"#{options.CC}\" " if defined? options.CC
 			buildCommand += "CXX=\"#{options.CXX}\" " if defined? options.CXX

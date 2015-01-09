@@ -1,12 +1,16 @@
 class Install
 	def self.make_install
 		lambda do |library, options|
+			Dir.chdir "#{library.work_dir}/#{library.build_subdir}"
+
 			system("make install")
 		end
 	end
 
 	def self.copyHeaders
 		lambda do |library, options|
+			Dir.chdir "#{library.work_dir}/#{library.build_subdir}"
+
 			FileUtils.mkdir_p "#{options.prefix}/include"
 			failed = false
 			headers = []
