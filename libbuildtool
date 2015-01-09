@@ -5,6 +5,7 @@ require 'ostruct'
 require 'json'
 require 'fileutils'
 
+require_relative 'classes/arraystruct.rb'
 require_relative 'classes/functions'
 require_relative 'classes/os'
 require_relative 'classes/library'
@@ -161,9 +162,9 @@ end
 
 masterBuildOptions = nil
 if defined? $options.platform.buildOptions and not $options.platform.buildOptions.nil?
-  masterBuildOptions = $options.platform.buildOptions
+	masterBuildOptions = $options.platform.buildOptions
 else
-	masterBuildOptions =  OpenStruct.new()
+	masterBuildOptions =  ArrayStruct.new()
 end
 masterBuildOptions.prefix = $options.install_dir
 
