@@ -31,15 +31,23 @@ module Platforms
 	end
 
 	def self.get_platform platform_name
-    folders = ['.', @base_dir]
-    platform_package_path = ''
-    folders.each do |folder|
-      platform_package_path = "#{folder}/#{platform_name}.plat"
-      if Dir.exists? platform_package_path  then
-        break
-      end
-
-    end
+		folders = ['.', @base_dir]
+		platform_package_path = ''
+		folders.each do |folder|
+			platform_package_path = "#{folder}/#{platform_name}.plat"
+			if Dir.exists? platform_package_path  then
+				break
+			end
+		end
+		# FIXME : (Enhancement) Add upper/lower case fuzzy matching and proposition.
+		unless Dir.exists? platform_package_path
+			puts " platform : #{platform_name}"
+			puts "Searched into :"
+			folders.each do |f|
+				puts " → #{f}"
+			end
+			exit 2
+		end
 		unless platform_package_path != ''
 			puts platform_package_path
 			raise "The platform asked for (#{platform_name}) does not exist."
@@ -48,7 +56,7 @@ module Platforms
 		require platform_package_path + '/platform'
 
 		unless Platforms.const_defined? platform_name
-			raise "The #{platform_name} platform class has not been defined in the platform."
+		raise "The #{platform_name} platform class has not been defined in the platform."
 		end
 
 		Platforms.const_get platform_name
