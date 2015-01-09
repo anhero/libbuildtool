@@ -5,6 +5,7 @@ require 'ostruct'
 require 'json'
 require 'fileutils'
 
+require_relative 'classes/patch'
 require_relative 'classes/arraystruct.rb'
 require_relative 'classes/functions'
 require_relative 'classes/os'
@@ -246,6 +247,25 @@ libraries.each do |libraryDesc|
 				# If there's only one component in the directory, go into it.
 				library.build_subdir = (listing.first) if listing.length == 1
 			end
+
+
+### PATCH ###
+			Dir.chdir $global_state.current_dir
+			unless library.patcher
+				unless library.patch.nil?
+					if File.directory? library.patch then
+						library.patcher = Patch.copy
+					else
+						# library.patcher = Patch.copy
+					end
+				end
+			end
+
+			if library.patcher
+				scriptSuccess = library.patcher.call library, buildOptions
+				throw "Patch script failed for #{library.name}" if not scriptSuccess
+			end
+
 
 ### PREPARE BUILD ###
 			Dir.chdir $global_state.current_dir
