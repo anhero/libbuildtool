@@ -4,16 +4,16 @@ module Build
 			Dir.chdir "#{library.work_dir}/#{library.build_subdir}"
 
 			buildCommand = ""
-			buildCommand += "CC=\"#{options.CC}\" " if defined? options.CC
-			buildCommand += "CXX=\"#{options.CXX}\" " if defined? options.CXX
-			buildCommand += "AR=\"#{options.AR}\" " if defined? options.AR
-			buildCommand += "CFLAGS=\"#{options.CFLAGS}\" " if defined? options.CFLAGS
-			buildCommand += "CPPFLAGS=\"#{options.CPPFLAGS}\" " if defined? options.CPPFLAGS
-			buildCommand += "LDFLAGS=\"#{options.LDFLAGS}\" " if defined? options.LDFLAGS
-			buildCommand += "WINDRES=\"#{options.WINDRES}\" " if defined? options.WINDRES
 
-			buildCommand += "#{options.environment} " if defined? options.environment
-			buildCommand += "./configure #{options.configureOptions} --prefix=#{options.prefix} && make"
+			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :LDFLAGS, :WINDRES].each do |env|
+				value = options[env]
+				if value.length > 0 then
+					buildCommand += "#{env}=\"#{value.join(' ')}\""
+				end
+			end
+
+			buildCommand += "#{options.environment.join(' ')} "
+			buildCommand += "./configure #{options.configureOptions.join(' ')} --prefix=#{options.prefix.join} && make"
 			puts buildCommand
 			system(buildCommand)
 		end
