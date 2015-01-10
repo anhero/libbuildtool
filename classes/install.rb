@@ -1,6 +1,7 @@
 class Install
 	def self.make_install
 		lambda do |library, options|
+			Dir.chdir "#{library.work_dir}/#{library.build_subdir}"
 			Exec.run("make", "install")
 		end
 	end

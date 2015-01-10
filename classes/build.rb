@@ -1,8 +1,8 @@
 module Build
 	def self.configure_make
 		lambda do |library, options|
+			Dir.chdir "#{library.work_dir}/#{library.build_subdir}"
 			env = {}
-
 			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :LDFLAGS, :WINDRES].each do |var|
 				value = options[var]
 				if value.length > 0 then
