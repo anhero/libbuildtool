@@ -8,6 +8,7 @@ class Install
 
 	def self.copyHeaders
 		lambda do |library, options|
+			Dir.chdir "#{library.work_dir}/#{library.build_subdir}"
 			FileUtils.mkdir_p "#{options.prefix.join}/include"
 			headers = []
 			headers += Dir.glob('**/*.h')

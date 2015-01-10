@@ -188,11 +188,13 @@ libraries.each do |libraryDesc|
 		buildOptions = masterBuildOptions.clone
 
 		begin
-
-
+			Dir.chdir $global_state.current_dir
+			# Holder for the library configuration.
 			library = Library.new
 
-
+			# Default values
+			library.build   = Build.configure_make
+			library.install = Install.make_install
 
 			eval(File.open("#{libraryDesc}").read)
 
@@ -200,13 +202,11 @@ libraries.each do |libraryDesc|
 			puts_banner library.name
 			puts
 
-			library.build ||= Build.configure_make
-			library.install ||= Install.make_install
-			library.fetch ||=  ((library.url.nil? and not library.path.nil?) ? 	Fetch.local : Fetch.http)
-
+			# The fetch method used is dependent of the configuration.
+			library.fetch ||= ((library.url.nil? and not library.path.nil?) ?  Fetch.local : Fetch.http)
 
 ### FETCH ###
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.srcDir
 
 			if not File.exist? library.archive and library.fetch
 				scriptSuccess = library.fetch.call library
@@ -214,7 +214,7 @@ libraries.each do |libraryDesc|
 			end
 
 ### HASH ###
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.srcDir
 
 			archiveIsValid = true
 			archiveIsValid = Functions.checkFileHash library.hash, library.archive if library.hash
