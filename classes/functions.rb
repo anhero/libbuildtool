@@ -1,7 +1,7 @@
 require 'digest'
 require_relative 'dir'
 module Functions
-	def self.execAvailable name
+	def self.program_exists name
 		Exec.run "which", name, :silent=>true
 	end
 

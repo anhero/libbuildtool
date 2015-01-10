@@ -2,9 +2,9 @@ require 'net/http'
 module Fetch
 	def self.http
 		lambda do |library|
-			if Functions.execAvailable 'curl'
+			if Functions.program_exists 'curl'
 				return Exec.run "curl", "-L", library.url, "-o", "#{$global_state.source_dir}/#{library.archive}"
-			elsif Functions.execAvailable 'wget'
+			elsif Functions.program_exists 'wget'
 				return Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{library.archive} #{library.url}", library.url
 			else
 				puts 'No tool available to fetch from http.'

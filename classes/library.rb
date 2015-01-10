@@ -1,5 +1,10 @@
 class Library
-	attr_accessor :name, :hash, :license, :version, :archive, :url, :path, :patch, :patcher, :fetch, :unpack, :build, :install, :prepareBuild, :build_subdir, :work_dir
+	attr_accessor :name, :hash, :license, :version,
+	              :archive, :url, :path, :fetch,
+	              :patch, :patcher, :unpack,
+	              :build, :install, :prepare_build,
+	              :build_subdir, :work_dir
+
 	def initialize
 
 	end

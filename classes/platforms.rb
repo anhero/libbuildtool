@@ -3,7 +3,7 @@ module Platforms
 	class Platform
 
 		attr_accessor :build_options
-		def defaultOptions opts
+		def default_options opts
 			puts self
 
 			opts.separator ''
@@ -75,8 +75,8 @@ module Platforms
           d = d[0..d.rindex(".")-1]
 
           platform = self.get_platform d
-          if defined? platform.shortDesc
-            platforms << "#{d} -- #{platform.shortDesc}"
+          if defined? platform.short_desc
+            platforms << "#{d} -- #{platform.short_desc}"
           else
             platforms << d
           end

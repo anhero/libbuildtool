@@ -19,7 +19,7 @@ require_relative 'classes/exec'
 
 current_dir = Dir.pwd
 
-def showBanner
+def show_banner
 	return unless $options.show_banner
 	puts <<BANNER
 .__  ._____.  ___.         .__.__       .___ __                .__   
@@ -60,7 +60,7 @@ end
 		opts.separator 'Global options'
 
 		opts.on('-h', '--help', 'Shows this help.') do
-			showBanner
+			show_banner
 			puts opts
 			if $options.platform.respond_to? 'list_options'
 				$options.platform.list_options
@@ -98,7 +98,7 @@ end
 		opts.on('-p', '--platform', '=PLATFORM', 'Name of the platform file to use.') do |platform|
 			$options.platform = Platforms.get_platform platform
 			$options.platform = $options.platform.new
-			$options.platformName = platform
+			$options.platform_name = platform
 		end
 
 		opts.on('--list-platform-options', 'Lists the options of the platform.') do
@@ -120,7 +120,7 @@ $options.platform.permute! if 	$options.platform
 
 
 
-showBanner
+show_banner
 
 libraries = []
 
@@ -172,20 +172,20 @@ end
 	FileUtils.mkdir_p source_dir
 	FileUtils.mkdir_p build_dir
 
-masterBuildOptions = nil
+master_build_options = nil
 if defined? $options.platform.build_options and not $options.platform.build_options.nil?
-	masterBuildOptions = $options.platform.build_options
+	master_build_options = $options.platform.build_options
 else
-	masterBuildOptions =  ArrayStruct.new()
+	master_build_options =  ArrayStruct.new()
 end
-masterBuildOptions.prefix = $options.install_dir
+master_build_options.prefix = $options.install_dir
 
 #################################
 ### Libraries build iteration ###
 ################################
 libraries.each do |desc_filename|
 		next if build_cache.include? desc_filename
-		build_options = masterBuildOptions.clone
+		build_options = master_build_options.clone
 
 		begin
 			Dir.chdir $global_state.current_dir
@@ -272,9 +272,9 @@ libraries.each do |desc_filename|
 ### PREPARE BUILD ###
 			Dir.chdir $global_state.current_dir
 
-			if library.prepareBuild
-				scriptSuccess = library.prepareBuild.call library, build_options
-				throw "PrepareBuild script failed for #{library.name}" if not scriptSuccess
+			if library.prepare_build
+				scriptSuccess = library.prepare_build.call library, build_options
+				throw "The prepare_build script failed for #{library.name}" if not scriptSuccess
 			end
 
 ### BUILD ###

@@ -10,14 +10,14 @@ module Build
 				end
 			end
 			# FIXME : Allow "other" environment variables to be added... OR make everything work the same way...
-			#buildCommand += "#{options.environment.join(' ')} "
+			#build_command += "#{options.environment.join(' ')} "
 
-			buildCommand = []
-			buildCommand << "./configure"
-			buildCommand.push *(options.configure_options)
-			buildCommand << "--prefix=#{options.prefix.join}"
-			puts buildCommand
-			Exec.run(env, *buildCommand) or raise "./configure failed."
+			build_command = []
+			build_command << "./configure"
+			build_command.push *(options.configure_options)
+			build_command << "--prefix=#{options.prefix.join}"
+			puts build_command
+			Exec.run(env, *build_command) or raise "./configure failed."
 			Exec.run(env, "make") or raise "make failed"
 		end
 	end

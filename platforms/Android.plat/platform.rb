@@ -27,7 +27,7 @@ module Platforms
 
 
 =begin
-		def self.shortDesc
+		def self.short_desc
 			return 'Cygwin distribution of the Mingw compiler. Used to compile windows native trough Cygwin (Not for MSYS).'
 		end
 =end
