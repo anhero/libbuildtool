@@ -1,7 +1,7 @@
 class Install
 	def self.make_install
 		lambda do |library, options|
-			system("make install")
+			Exec.run("make", "install")
 		end
 	end
 

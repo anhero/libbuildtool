@@ -14,6 +14,7 @@ require_relative 'classes/unpack'
 require_relative 'classes/build'
 require_relative 'classes/install'
 require_relative 'classes/platforms'
+require_relative 'classes/exec'
 
 currentDir = Dir.pwd
 
@@ -124,6 +125,7 @@ begin
 	eval(File.open("#{$options.libraries_list}").read)
 rescue Exception => e
 	puts "Crashed while reading the libraries list!!!"
+	puts e.backtrace
 	puts e
 end
 
@@ -247,6 +249,7 @@ libraries.each do |libraryDesc|
 		rescue Exception => e
 			#FileUtils.rm_rf buildDir
 			puts "Crashed while building #{libraryDesc}!!"
+			puts e.backtrace
 			puts e
 			abort
 		end

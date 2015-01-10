@@ -2,7 +2,7 @@ require 'digest'
 require_relative 'dir'
 module Functions
 	def self.execAvailable name
-		system("which #{name} &> /dev/null")
+		Exec.run "which", name, :silent=>true
 	end
 
 	def self.gotoSubDir
