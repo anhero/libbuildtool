@@ -3,7 +3,7 @@ module Platforms
 
 
 		def initialize
-			@buildOptions = ArrayStruct.new(:CC => 'i686-pc-mingw32-gcc', :CXX => 'i686-pc-mingw32-g++', :WINDRES => 'i686-pc-mingw32-windres')
+			@build_options = ArrayStruct.new(:CC => 'i686-pc-mingw32-gcc', :CXX => 'i686-pc-mingw32-g++', :WINDRES => 'i686-pc-mingw32-windres')
 
 
 			$options.compiler if $options.compiler == nil

@@ -17,7 +17,7 @@ require_relative 'classes/install'
 require_relative 'classes/platforms'
 require_relative 'classes/exec'
 
-currentDir = Dir.pwd
+current_dir = Dir.pwd
 
 def showBanner
 	return unless $options.show_banner
@@ -48,7 +48,7 @@ end
 			:libraries_list   => DEFAULT_LIBRARIES_LIST,
 			:rebuild => false,
 			:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
-			:work_dir => "#{currentDir}/workdir",
+			:work_dir => "#{current_dir}/workdir",
 			:platform => nil,
 	)
 
@@ -138,43 +138,43 @@ end
 ### Global state resolution ###
 ###############################
 
-workDir = $options.work_dir
-buildedJsonPath = "#{workDir}/builded.json"
-srcDir =  "#{workDir}/src"
-buildDir =  "#{workDir}/build"
+work_dir         = $options.work_dir
+build_cache_path = "#{work_dir}/built.json"
+source_dir       = "#{work_dir}/src"
+build_dir        = "#{work_dir}/build"
 
-$global_state =  OpenStruct.new()
-$global_state.workDir = workDir
-$global_state.buildedJsonPath = buildedJsonPath
-$global_state.srcDir = srcDir
-$global_state.buildDir = buildDir
-$global_state.current_dir = currentDir
+$global_state = OpenStruct.new()
+$global_state.work_dir = work_dir
+$global_state.build_cache_path = build_cache_path
+$global_state.source_dir = source_dir
+$global_state.build_dir = build_dir
+$global_state.current_dir = current_dir
 
 
 #############################
 ### Directory Preparation ###
 #############################
-buildedJson = []
-if Dir.exist? workDir
+build_cache = []
+if Dir.exist? work_dir
 	if $options.rebuild
-		FileUtils.rm_rf buildDir
+		FileUtils.rm_rf build_dir
 	else
-		buildedJson = JSON.parse(File.read(buildedJsonPath)) if File.exist? buildedJsonPath
+		build_cache = JSON.parse(File.read(build_cache_path)) if File.exist? build_cache_path
 	end
 
 end
-	FileUtils.rm_rf buildDir if Dir.exist? buildDir
+	FileUtils.rm_rf build_dir if Dir.exist? build_dir
 
 	FileUtils.mkdir_p $options.install_dir
 
 
-	FileUtils.mkdir_p workDir
-	FileUtils.mkdir_p srcDir
-	FileUtils.mkdir_p buildDir
+	FileUtils.mkdir_p work_dir
+	FileUtils.mkdir_p source_dir
+	FileUtils.mkdir_p build_dir
 
 masterBuildOptions = nil
-if defined? $options.platform.buildOptions and not $options.platform.buildOptions.nil?
-	masterBuildOptions = $options.platform.buildOptions
+if defined? $options.platform.build_options and not $options.platform.build_options.nil?
+	masterBuildOptions = $options.platform.build_options
 else
 	masterBuildOptions =  ArrayStruct.new()
 end
@@ -183,9 +183,9 @@ masterBuildOptions.prefix = $options.install_dir
 #################################
 ### Libraries build iteration ###
 ################################
-libraries.each do |libraryDesc|
-		next if buildedJson.include? libraryDesc
-		buildOptions = masterBuildOptions.clone
+libraries.each do |desc_filename|
+		next if build_cache.include? desc_filename
+		build_options = masterBuildOptions.clone
 
 		begin
 			Dir.chdir $global_state.current_dir
@@ -196,7 +196,7 @@ libraries.each do |libraryDesc|
 			library.build   = Build.configure_make
 			library.install = Install.make_install
 
-			eval(File.open("#{libraryDesc}").read)
+			eval(File.open("#{desc_filename}").read)
 
 			puts
 			puts_banner library.name
@@ -206,7 +206,7 @@ libraries.each do |libraryDesc|
 			library.fetch ||= ((library.url.nil? and not library.path.nil?) ?  Fetch.local : Fetch.http)
 
 ### FETCH ###
-			Dir.chdir $global_state.srcDir
+			Dir.chdir $global_state.source_dir
 
 			if not File.exist? library.archive and library.fetch
 				scriptSuccess = library.fetch.call library
@@ -214,7 +214,7 @@ libraries.each do |libraryDesc|
 			end
 
 ### HASH ###
-			Dir.chdir $global_state.srcDir
+			Dir.chdir $global_state.source_dir
 
 			archiveIsValid = true
 			archiveIsValid = Functions.checkFileHash library.hash, library.archive if library.hash
@@ -226,7 +226,7 @@ libraries.each do |libraryDesc|
 ### UNPACK ###
 			Dir.chdir $global_state.current_dir
 
-			FileUtils.mkdir_p buildDir
+			FileUtils.mkdir_p build_dir
 			if not library.unpack
 				if(library.archive.include? '.tar' or library.archive.include? 'tgz')
 					library.unpack = Unpack.tar
@@ -234,10 +234,10 @@ libraries.each do |libraryDesc|
 					library.unpack = Unpack.zip
 				end
 			end
-			library.work_dir = "#{buildDir}/#{library.name}"
+			library.work_dir = "#{build_dir}/#{library.name}"
 			FileUtils.rm_rf library.work_dir if Dir.exist? library.work_dir
 			FileUtils.mkdir_p library.work_dir
-			scriptSuccess = library.unpack.call library, srcDir, library.work_dir
+			scriptSuccess = library.unpack.call library, source_dir, library.work_dir
 			throw "Unpack script failed for #{library.name}" if not scriptSuccess
 
 			if library.build_subdir.nil?
@@ -264,7 +264,7 @@ libraries.each do |libraryDesc|
 			end
 
 			if library.patcher
-				scriptSuccess = library.patcher.call library, buildOptions
+				scriptSuccess = library.patcher.call library, build_options
 				throw "Patch script failed for #{library.name}" if not scriptSuccess
 			end
 
@@ -273,7 +273,7 @@ libraries.each do |libraryDesc|
 			Dir.chdir $global_state.current_dir
 
 			if library.prepareBuild
-				scriptSuccess = library.prepareBuild.call library, buildOptions
+				scriptSuccess = library.prepareBuild.call library, build_options
 				throw "PrepareBuild script failed for #{library.name}" if not scriptSuccess
 			end
 
@@ -281,7 +281,7 @@ libraries.each do |libraryDesc|
 			Dir.chdir $global_state.current_dir
 
 			if library.build
-				scriptSuccess = library.build.call library, buildOptions
+				scriptSuccess = library.build.call library, build_options
 				throw "Build script failed for #{library.name}" if not scriptSuccess
 			end
 
@@ -290,17 +290,17 @@ libraries.each do |libraryDesc|
 
 			if library.install
 				library.install = Install.make_install if not library.install
-				scriptSuccess = library.install.call library, buildOptions
+				scriptSuccess = library.install.call library, build_options
 				throw "Install script failed for #{library.name}" if not scriptSuccess
 			end
 
 
-			buildedJson << libraryDesc
-			File.write(buildedJsonPath, JSON.generate(buildedJson))
+			build_cache << desc_filename
+			File.write(build_cache_path, JSON.generate(build_cache))
 
 		rescue Exception => e
-			#FileUtils.rm_rf buildDir
-			puts "Crashed while building #{libraryDesc}!!"
+			#FileUtils.rm_rf build_dir
+			puts "Crashed while building #{desc_filename}!!"
 			puts e.backtrace
 			puts e
 			abort

@@ -14,7 +14,7 @@ module Build
 
 			buildCommand = []
 			buildCommand << "./configure"
-			buildCommand.push *(options.configureOptions)
+			buildCommand.push *(options.configure_options)
 			buildCommand << "--prefix=#{options.prefix.join}"
 			puts buildCommand
 			Exec.run(env, *buildCommand) or raise "./configure failed."

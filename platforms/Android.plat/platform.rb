@@ -3,19 +3,19 @@ module Platforms
 
 
 		def initialize
-			@buildOptions = ArrayStruct.new(:configureOptions => '--host=arm-android-linux', :arch => 'arm')
-			$options.install_dir = "#{Dir.pwd}/Android/#{@buildOptions.arch}"
+			@build_options = ArrayStruct.new(:configure_options => '--host=arm-android-linux', :arch => 'arm')
+			$options.install_dir = "#{Dir.pwd}/Android/#{@build_options.arch}"
 
 			$options.compiler if $options.compiler == nil
 			@optionParser = OptionParser.new do |opts|
 				opts.on('-a', '--arch', '=ARCHITECTURE', 'Architecture', "Default: arm") do |arch|
-					@buildOptions.arch = arch
+					@build_options.arch = arch
 					if arch == 'arm' then
-						@buildOptions.configureOptions = '--host=arm-android-linux'
+						@build_options.configure_options = '--host=arm-android-linux'
 					elsif arch == 'x86'
-						@buildOptions.configureOptions = '--host=x86-android-linux'
+						@build_options.configure_options = '--host=x86-android-linux'
 					end
-					$options.install_dir = "#{Dir.pwd}/Android/#{@buildOptions.arch}"
+					$options.install_dir = "#{Dir.pwd}/Android/#{@build_options.arch}"
 				end
 			end
 		end

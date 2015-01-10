@@ -2,7 +2,7 @@ module Platforms
 
 	class Platform
 
-		attr_accessor :buildOptions
+		attr_accessor :build_options
 		def defaultOptions opts
 			puts self
 

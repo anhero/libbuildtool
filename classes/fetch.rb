@@ -3,9 +3,9 @@ module Fetch
 	def self.http
 		lambda do |library|
 			if Functions.execAvailable 'curl'
-				return Exec.run "curl", "-L", library.url, "-o", "#{$global_state.srcDir}/#{library.archive}"
+				return Exec.run "curl", "-L", library.url, "-o", "#{$global_state.source_dir}/#{library.archive}"
 			elsif Functions.execAvailable 'wget'
-				return Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.srcDir}/#{library.archive} #{library.url}", library.url
+				return Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{library.archive} #{library.url}", library.url
 			else
 				puts 'No tool available to fetch from http.'
 				return false
@@ -17,7 +17,7 @@ module Fetch
 		lambda do |library|
 			path = library.path || library.url
 
-			dest = "#{$global_state.srcDir}/#{library.archive}"
+			dest = "#{$global_state.source_dir}/#{library.archive}"
 			FileUtils.cp_r path, dest
 			return true
 		end
