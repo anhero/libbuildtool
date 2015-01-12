@@ -6,7 +6,7 @@ module Functions
 	end
 
 	def self.gotoSubDir
-		lambda do |library, options|
+		lambda do |library|
 			return Dir.gotoSubDir()
 		end
 	end

@@ -17,10 +17,9 @@ require_relative 'classes/install'
 require_relative 'classes/platforms'
 require_relative 'classes/exec'
 
-current_dir = Dir.pwd
 
 def show_banner
-	return unless $options.show_banner
+	return unless $libbuildtool_params.show_banner
 	puts <<BANNER
 .__  ._____.  ___.         .__.__       .___ __                .__   
 |  | |__\\_ |__\\_ |__  __ __|__|  |    __| _//  |_  ____   ____ |  |  
@@ -42,14 +41,15 @@ end
 ### Options and parameters handling ###
 #######################################
 
-	DEFAULT_LIBRARIES_LIST = 'libraries.desc'
-	$options = OpenStruct.new(
+	DEFAULT_LIBRARIES_LIST = 'libraries.rb'
+	$libbuildtool_params = OpenStruct.new(
 			:show_banner    => true,
-			:libraries_list   => DEFAULT_LIBRARIES_LIST,
+			:libraries_list   => nil,
 			:rebuild => false,
 			:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
-			:work_dir => "#{current_dir}/workdir",
+			:work_dir => "#{Dir.pwd}/workdir",
 			:platform => nil,
+			:project_dir => Dir.pwd
 	)
 
 	@optionParser = OptionParser.new do |opts|
@@ -62,23 +62,35 @@ end
 		opts.on('-h', '--help', 'Shows this help.') do
 			show_banner
 			puts opts
-			if $options.platform.respond_to? 'list_options'
-				$options.platform.list_options
+			if $libbuildtool_params.platform.respond_to? 'list_options'
+				$libbuildtool_params.platform.list_options
 			end
 			exit
 		end
 
 		opts.on('-r', '--rebuild', 'Rebuild all the lib instead of building the remaining libs.') do
-			$options.rebuild = true
+			$libbuildtool_params.rebuild = true
 		end
 
 		opts.on('--no-banner', 'Do not output the ASCII art banner.') do
-			$options.show_banner = false
+			$libbuildtool_params.show_banner = false
 		end
 
 
 		opts.on('-l', '--libraries-list', '=FILENAME', 'Libraries list to use.', "Default: #{DEFAULT_LIBRARIES_LIST}") do |file|
-			$options.libraries_list = file
+			$libbuildtool_params.libraries_list = file
+		end
+
+		opts.on('-i', '--install-dir', '=DIR', 'Final output directory.', "Default: #{$libbuildtool_params.install_dir}") do |dir|
+			$libbuildtool_params.install_dir = dir
+		end
+
+		opts.on('-s', '--project-dir', '=DIR', 'Project directory.', "Default: #{$libbuildtool_params.project_dir}") do |dir|
+			$libbuildtool_params.project_dir = dir
+		end
+
+		opts.on('-w', '--work-dir', '=DIR', 'Temp work directory.', "Default: #{$libbuildtool_params.work_dir}") do |dir|
+			$libbuildtool_params.work_dir = dir
 		end
 
 		opts.separator ''
@@ -91,33 +103,42 @@ end
 			exit 0
 		end
 
-		opts.on('-d', '--desc-dir', '=DIR', 'Location of the libraries descriptions.') do |desc_dir|
-			$options.desc_dir = desc_dir
-		end
-
 		opts.on('-p', '--platform', '=PLATFORM', 'Name of the platform file to use.') do |platform|
-			$options.platform = Platforms.get_platform platform
-			$options.platform = $options.platform.new
-			$options.platform_name = platform
+			$libbuildtool_params.platform = Platforms.get_platform platform
+			$libbuildtool_params.platform = $libbuildtool_params.platform.new
+			$libbuildtool_params.platform_name = platform
 		end
 
 		opts.on('--list-platform-options', 'Lists the options of the platform.') do
-			unless $options.platform
+			unless $libbuildtool_params.platform
 				raise 'The platform has to be selected before listing its options.'
 			end
-			unless $options.platform.respond_to? 'list_options'
+			unless $libbuildtool_params.platform.respond_to? 'list_options'
 				raise 'The platform has no way to list its options.'
 			end
-			$options.platform.list_options
+			$libbuildtool_params.platform.list_options
 			exit 0
 		end
 
 	end
 @optionParser.permute!
 
-$options.platform.permute! if 	$options.platform
+$libbuildtool_params.platform.permute! if 	$libbuildtool_params.platform
 
 
+###############################
+### Global state resolution ###
+###############################
+
+
+$global_state = OpenStruct.new()
+$global_state.work_dir         = $libbuildtool_params.work_dir
+$global_state.build_cache_path = "#{$global_state.work_dir}/built.json"
+$global_state.source_dir       = "#{$global_state.work_dir}/src"
+$global_state.build_dir        = "#{$global_state.work_dir}/build"
+$global_state.project_dir = $libbuildtool_params.project_dir
+$global_state.libraries_list = $libbuildtool_params.libraries_list
+$global_state.libraries_list = "#{$global_state.project_dir}/#{DEFAULT_LIBRARIES_LIST}" if $global_state.libraries_list.nil?
 
 
 show_banner
@@ -125,96 +146,88 @@ show_banner
 libraries = []
 
 
+$build_options = nil
+if defined? $libbuildtool_params.platform.build_options and not $libbuildtool_params.platform.build_options.nil?
+	$build_options = $libbuildtool_params.platform.build_options
+else
+	$build_options =  ArrayStruct.new()
+end
+$build_options.install_dir = $libbuildtool_params.install_dir
+
+
 #parsing libraries.desc
 begin
-	eval(File.open("#{$options.libraries_list}").read)
+	eval(File.open("#{$global_state.libraries_list}").read)
 rescue Exception => e
 	puts "Crashed while reading the libraries list!!!"
 	puts e.backtrace
 	puts e
 end
 
-###############################
-### Global state resolution ###
-###############################
-
-work_dir         = $options.work_dir
-build_cache_path = "#{work_dir}/built.json"
-source_dir       = "#{work_dir}/src"
-build_dir        = "#{work_dir}/build"
-
-$global_state = OpenStruct.new()
-$global_state.work_dir = work_dir
-$global_state.build_cache_path = build_cache_path
-$global_state.source_dir = source_dir
-$global_state.build_dir = build_dir
-$global_state.current_dir = current_dir
 
 
 #############################
 ### Directory Preparation ###
 #############################
 build_cache = []
-if Dir.exist? work_dir
-	if $options.rebuild
-		FileUtils.rm_rf build_dir
+if Dir.exist? $global_state.work_dir
+	if $libbuildtool_params.rebuild
+		FileUtils.rm_rf $global_state.build_dir
 	else
-		build_cache = JSON.parse(File.read(build_cache_path)) if File.exist? build_cache_path
+		build_cache = JSON.parse(File.read($global_state.build_cache_path)) if File.exist? $global_state.build_cache_path
 	end
 
 end
-	FileUtils.rm_rf build_dir if Dir.exist? build_dir
+	FileUtils.rm_rf $global_state.build_dir if Dir.exist? $global_state.build_dir
 
-	FileUtils.mkdir_p $options.install_dir
+	FileUtils.mkdir_p $libbuildtool_params.install_dir
 
 
-	FileUtils.mkdir_p work_dir
-	FileUtils.mkdir_p source_dir
-	FileUtils.mkdir_p build_dir
+	FileUtils.mkdir_p $global_state.work_dir
+	FileUtils.mkdir_p $global_state.source_dir
+	FileUtils.mkdir_p $global_state.build_dir
 
-master_build_options = nil
-if defined? $options.platform.build_options and not $options.platform.build_options.nil?
-	master_build_options = $options.platform.build_options
-else
-	master_build_options =  ArrayStruct.new()
-end
-master_build_options.prefix = $options.install_dir
 
 #################################
 ### Libraries build iteration ###
 ################################
 libraries.each do |desc_filename|
 		next if build_cache.include? desc_filename
-		build_options = master_build_options.clone
 
 		begin
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.project_dir
 			# Holder for the library configuration.
 			library = Library.new
-
 			# Default values
 			library.build   = Build.configure_make
 			library.install = Install.make_install
+			library.options = $build_options.clone
 
 			eval(File.open("#{desc_filename}").read)
+
+			library.work_dir = "#{$global_state.build_dir}/#{library.name}"
+			FileUtils.rm_rf library.work_dir if Dir.exist? library.work_dir
+			FileUtils.mkdir_p library.work_dir
 
 			puts
 			puts_banner library.name
 			puts
 
 			# The fetch method used is dependent of the configuration.
-			library.fetch ||= ((library.url.nil? and not library.path.nil?) ?  Fetch.local : Fetch.http)
+			if library.fetch == false then
+				library.fetch ||= ((library.url.nil? and not library.path.nil?) ?  Fetch.local : Fetch.http)
+			end
 
 ### FETCH ###
-			Dir.chdir $global_state.source_dir
+			Dir.chdir $global_state.project_dir
 
-			if not File.exist? library.archive and library.fetch
+			if library.fetch and not File.exist? library.archive
 				scriptSuccess = library.fetch.call library
 				throw "Fetch script failed for #{library.name}" if not scriptSuccess
 			end
 
 ### HASH ###
-			Dir.chdir $global_state.source_dir
+			Dir.chdir $global_state.project_dir
 
 			archiveIsValid = true
 			archiveIsValid = Functions.checkFileHash library.hash, library.archive if library.hash
@@ -224,37 +237,40 @@ libraries.each do |desc_filename|
 			end
 
 ### UNPACK ###
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.project_dir
 
-			FileUtils.mkdir_p build_dir
-			if not library.unpack
+			FileUtils.mkdir_p $global_state.build_dir
+			if library.unpack == false
 				if(library.archive.include? '.tar' or library.archive.include? 'tgz')
 					library.unpack = Unpack.tar
 				elsif(library.archive.include? '.zip')
 					library.unpack = Unpack.zip
 				end
 			end
-			library.work_dir = "#{build_dir}/#{library.name}"
-			FileUtils.rm_rf library.work_dir if Dir.exist? library.work_dir
-			FileUtils.mkdir_p library.work_dir
-			scriptSuccess = library.unpack.call library, source_dir, library.work_dir
-			throw "Unpack script failed for #{library.name}" if not scriptSuccess
 
-			if library.build_subdir.nil?
-				to_ignore = ["__MACOSX", ".", ".."]
-				listing = Dir.entries library.work_dir
-				to_ignore.each do |ignored|
-					listing.delete ignored
+
+
+			if library.unpack then
+				scriptSuccess = library.unpack.call library
+				throw "Unpack script failed for #{library.name}" if not scriptSuccess
+
+				if library.build_subdir.nil?
+					to_ignore = ["__MACOSX", ".", ".."]
+					listing = Dir.entries library.work_dir
+					to_ignore.each do |ignored|
+						listing.delete ignored
+					end
+					# If there's only one component in the directory, go into it.
+					library.build_subdir = (listing.first) if listing.length == 1
 				end
-				# If there's only one component in the directory, go into it.
-				library.build_subdir = (listing.first) if listing.length == 1
 			end
 
-
 ### PATCH ###
-			Dir.chdir $global_state.current_dir
-			unless library.patcher
-				unless library.patch.nil?
+			Dir.chdir $global_state.project_dir
+			unless library.patcher != false
+				if library.patch.nil?
+					library.patcher = nil
+				else
 					if File.directory? library.patch then
 						library.patcher = Patch.copy
 					else
@@ -264,39 +280,39 @@ libraries.each do |desc_filename|
 			end
 
 			if library.patcher
-				scriptSuccess = library.patcher.call library, build_options
+				scriptSuccess = library.patcher.call library
 				throw "Patch script failed for #{library.name}" if not scriptSuccess
 			end
 
 
 ### PREPARE BUILD ###
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.project_dir
 
-			if library.prepare_build
-				scriptSuccess = library.prepare_build.call library, build_options
+			if library.prepare_build and library.prepare_build != false
+				scriptSuccess = library.prepare_build.call library
 				throw "The prepare_build script failed for #{library.name}" if not scriptSuccess
 			end
 
 ### BUILD ###
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.project_dir
 
-			if library.build
-				scriptSuccess = library.build.call library, build_options
+			if library.build and library.build != false
+				scriptSuccess = library.build.call library
 				throw "Build script failed for #{library.name}" if not scriptSuccess
 			end
 
 ### INSTALL ###
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.project_dir
 
-			if library.install
+			if library.install and library.install != false
 				library.install = Install.make_install if not library.install
-				scriptSuccess = library.install.call library, build_options
+				scriptSuccess = library.install.call library
 				throw "Install script failed for #{library.name}" if not scriptSuccess
 			end
 
 
 			build_cache << desc_filename
-			File.write(build_cache_path, JSON.generate(build_cache))
+			File.write($global_state.build_cache_path, JSON.generate(build_cache))
 
 		rescue Exception => e
 			#FileUtils.rm_rf build_dir
