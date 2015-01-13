@@ -1,4 +1,4 @@
-class Installer < LBT::StepsFabricator
+class Steps::Installer < LBT::StepsFabricator
 	class MakeInstall < LBT::Step
 		def run
 			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"

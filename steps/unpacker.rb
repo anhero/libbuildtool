@@ -1,4 +1,4 @@
-class Unpacker < LBT::StepsFabricator
+class Steps::Unpacker < LBT::StepsFabricator
 
 	# The Unpacker::Auto might be the only class you will need
 	# to unpack stuff.

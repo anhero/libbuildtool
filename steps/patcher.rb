@@ -18,7 +18,7 @@
 #				throw "Patch script failed for #{library.name}" if not scriptSuccess
 #	        end
 			
-class Patcher < LBT::StepsFabricator
+class Steps::Patcher < LBT::StepsFabricator
 	class Copy < LBT::Step
 		def initialize patch_path
 			@patch_path = patch_path

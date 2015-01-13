@@ -1,6 +1,6 @@
 require 'net/http'
 
-class Fetcher < LBT::StepsFabricator
+class Steps::Fetcher < LBT::StepsFabricator
 	class HTTP < LBT::Step
 		def initialize url
 			@url     = url

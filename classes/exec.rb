@@ -60,6 +60,14 @@ class Exec
 		return $? == 0
 	end
 
+	# Basically a shortcut for system's +which+ command.
+	#
+	# Returns +true+ if the program is available.
+	# Otherwise, returns +false+.
+	def self.program_exists name
+		Exec.run "which", name, :silent=>true
+	end
+
 end
 
 

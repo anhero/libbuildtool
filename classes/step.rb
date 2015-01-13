@@ -63,3 +63,10 @@ module StepMaker
 		anonymous_class.new block
 	end
 end
+
+# Used for semantic holding of classes of +Step+s.
+#
+# This should be included in the scope where Libraries are built.
+module Steps
+
+end

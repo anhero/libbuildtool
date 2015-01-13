@@ -7,7 +7,6 @@ require 'fileutils'
 
 require_relative 'classes/arraystruct.rb'
 require_relative 'classes/exec'
-require_relative 'classes/functions'
 require_relative 'classes/library'
 require_relative 'classes/licenses'
 require_relative 'classes/os'
@@ -24,6 +23,9 @@ require_relative 'steps/verifier'
 
 # Adding the StepMaker to the global scope
 include StepMaker
+
+# Include the Steps namespace into the global scope.
+include Steps
 
 def show_banner
 	return unless $libbuildtool_params.show_banner

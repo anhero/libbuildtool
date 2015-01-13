@@ -1,4 +1,6 @@
-class Verifier < LBT::StepsFabricator
+require 'digest'
+
+class Steps::Verifier < LBT::StepsFabricator
 	class MD5 < LBT::Step
 		def initialize hash
 			@hash    = hash
