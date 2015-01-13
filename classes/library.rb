@@ -33,7 +33,7 @@ class Library
 
 		@steps = LBT::Steps.new()
 		# The default steps order
-		[ :fetcher, :verifier, :unpacker, :preparer, :builder, :installer ].each do |name|
+		[ :fetcher, :verifier, :unpacker, :patcher, :preparer, :builder, :installer ].each do |name|
 			@steps << {
 				name: name,
 				instance: LBT::NoOp.new()

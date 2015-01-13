@@ -19,7 +19,7 @@
 #	        end
 			
 class Patcher < LBT::StepsFabricator
-	class Copy
+	class Copy < LBT::Step
 		def initialize patch_path
 			@patch_path = patch_path
 		end
