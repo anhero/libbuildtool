@@ -1,6 +1,9 @@
 require 'ostruct'
 
 # Holds the Library classes.
+#
+# @see Libraries::Library
+# @see Libraries::BaseLibrary
 module Libraries end
 
 # The non-opinionated Library.
