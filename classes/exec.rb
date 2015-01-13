@@ -2,17 +2,45 @@
 # Exec
 #
 # Allows safer execution of external dependencies.
-# Wraps Process.spawn, using proper IO for stdin/stdout/stderr handling.
+# Wraps +Process.spawn+, using proper +IO+ for +stdin/stdout/stderr+ handling.
 #
 
 class Exec
 
-	# Not to be used. Only here as a shortcut for tests
+	# Shortcut for +Kernel.system()+ when system is disabled.
 	def self._sys(*args)
 		Kernel.system(*args)
 	end
 
-	# Shortcut to run stuff. returns true when command is successful (0 return value)
+	# Run external programs.
+	#
+	# The parameters are handled in a special way, as it would for +Process.spawn()+.
+	#
+	# The first parameter is the program to call.
+	#
+	# The other parameters are the arguments for this program, which do not need to be
+	# shell-escaped or shell-quoted as those parameters are not shelled-out.
+	# Though, take note that the underlying program might need to have some special
+	# care taken with its arguments, this is not the business of +Exec.run+.
+	#
+	# As a special case, a hash can be passed before parameter one, which is used
+	# to build an environment and passed to the underlying process.
+	#
+	# Finally, options can be passed as named parameters.
+	# * +:silent+   Will suppress all the output.
+	# * +:stdin+    With a hash having :filename = true, will use the +:filename+ options as stdin.
+	# * +:stdin+    A +String+ that will be used with an +IO.pipe()+ to send to the process as stdin.
+	# * +:filename+ To be used by stdin as input.
+	#
+	# @see Exec.program_exists program_exists for an example.
+	#
+	# *Note:* Currently, passing only one +String+ to this function will follow the
+	# convention that +Process.spawn()+ uses and shell out to the system's shell.
+	# This is not the recommended way to use Exec.run and is not supported. It, though,
+	# will not be disabled explicitely unless reasons requires it.
+	#
+	# @return true when command is successful (0 return value).
+	# @return false otherwise.
 	def self.run(*args)#, **options)
 
 		# Options hash
@@ -60,10 +88,10 @@ class Exec
 		return $? == 0
 	end
 
-	# Basically a shortcut for system's +which+ command.
+	# Shortcut for system's +which+ command.
 	#
-	# Returns +true+ if the program is available.
-	# Otherwise, returns +false+.
+	# @return +true+ if the program is available.
+	# @return +false+ otherwise.
 	def self.program_exists name
 		Exec.run "which", name, :silent=>true
 	end
