@@ -11,6 +11,9 @@ class Library
 	attr_accessor :name, :version, :license,
 	              :build_subdir, :work_dir, :prefix
 
+	# Used to store and retrieve the clone of $build_options.
+	attr_accessor :options
+
 	# Used to pass the archive name between many steps.
 	attr_accessor :archive, :url
 
@@ -24,6 +27,9 @@ class Library
 			name = "@#{name}".to_sym
 			self.instance_variable_set name, value
 		end
+
+		# This is a global state that we clone.
+		@options = $build_options.clone
 
 		@steps = LBT::Steps.new()
 		# The default steps order

@@ -12,7 +12,7 @@ class Unpacker < LBT::StepsFabricator
 
 		def run
 
-			Dir.chdir $global_state.current_dir
+			Dir.chdir $global_state.project_dir
 
 			FileUtils.mkdir_p $global_state.build_dir
 

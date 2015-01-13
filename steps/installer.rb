@@ -7,17 +7,14 @@ class Installer < LBT::StepsFabricator
 	end
 
 	class CopyHeaders < LBT::Step
-		def initialize options
-			@options = options
-		end
 		def run
 			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
-			FileUtils.mkdir_p "#{@options.prefix.join}/include"
+			FileUtils.mkdir_p "#{@library.options.install_dir.join}/include"
 			headers = []
 			headers += Dir.glob('**/*.h')
 			headers += Dir.glob('**/**.hpp')
 			headers.each do |header|
-				dest = "#{@options.prefix.join}/include/#{header}"
+				dest = "#{@library.options.install_dir.join}/include/#{header}"
 				FileUtils.mkdir_p File.dirname dest
 				FileUtils.rm dest if File.exist? dest
 				FileUtils.cp header, dest

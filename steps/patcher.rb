@@ -2,7 +2,7 @@
 #
 # This part is imported from the main libbuildtool script.
 #### PATCH ###
-#			Dir.chdir $global_state.current_dir
+#			Dir.chdir $global_state.project_dir
 #			unless library.patcher
 #				unless library.patch.nil?
 #					if File.directory? library.patch then
