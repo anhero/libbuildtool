@@ -36,6 +36,7 @@ include LBT::StepMaker
 # Include the Steps namespace into the global scope.
 include Steps
 
+# Shows a fancy ASCII-art banner
 def show_banner
 	return unless $libbuildtool_params.show_banner
 	puts <<BANNER
@@ -48,7 +49,11 @@ def show_banner
 BANNER
 end
 
-
+# Prints text centered in a banner
+#
+# @param text Text to print
+# @param col  Width of the banner
+# @param char Character to use for the banner
 def puts_banner text, col = 40, char = '*'
 	puts ''.rjust(col, char)
 	puts "*#{text.center(col -2 )}*"
@@ -207,7 +212,9 @@ FileUtils.mkdir_p $global_state.build_dir
 ### Libraries build iteration ###
 #################################
 
-# Know which one we're building out of the total.
+# Builds a library from its description's filename.
+#
+# @param desc_filename File to build.
 def build desc_filename
 	unless @build_cache.include? desc_filename
 		# FIXME : Scoping feels weird here. Find a better way to handle library, build_options scope.
