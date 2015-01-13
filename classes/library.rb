@@ -1,47 +1,35 @@
+require 'ostruct'
+
+# Holds the Library classes.
+module Libraries end
+
+# The non-opinionated Library.
+#
 # The Library is both the representation of the library
 # and the holder of the steps needed to build it.
 #
 # You can pass any named parameter to .new() to have
 # its properties filled.
 #
-# You can still fill those properties by the accessor
-# just as you could before.
+# You can fill any field through their accessor as you
+# would an OpenStruct.
 #
-class Library
-	attr_accessor :name, :version, :license,
-	              :build_subdir, :work_dir, :prefix
-
-	# Used to store and retrieve the clone of $build_options.
+class Libraries::BaseLibrary < OpenStruct
 	attr_accessor :options
 
-	# Used to pass the archive name between many steps.
-	attr_accessor :archive, :url
-
 	def initialize *args
-		# Options hash
-		options = {}
-		if args.last.is_a? Hash then
-			options = args.pop
-		end
-		options.each do |name, value|
-			name = "@#{name}".to_sym
-			self.instance_variable_set name, value
-		end
+		super *args
 
 		# This is a global state that we clone.
 		@options = $build_options.clone
+	end
 
-		@steps = LBT::Steps.new()
-		# The default steps order
-		[ :fetcher, :verifier, :unpacker, :patcher, :preparer, :builder, :installer ].each do |name|
-			@steps << {
-				name: name,
-				instance: LBT::NoOp.new()
-			}
+	# Accesses a specific element as you would with a +Hash+
+	def [](name)
+		if @table[name].nil? then
+			@table[name] = ArrayStructElement.new()
 		end
-
-		# Opinionated defaults
-		self.unpacker = Unpacker::Auto.new()
+		@table[name]
 	end
 
 	# Returns the steps that should run.
@@ -75,7 +63,50 @@ class Library
 		elsif method[-2..-1] == "er" then
 			return @steps.find method
 		else
-			super.method_missing method, *args
+			super method, *args
 		end
 	end
 end
+
+# An opinionated +Library+ with default values and behaviour.
+#
+# This +Library+ defines some default steps, which have a particular order.
+# 
+# Some automatic steps are added as defaults for some of the steps.
+# * +Fetcher::Auto+
+# * +Unpacker::Auto+
+#
+# @see Fetcher::Auto
+# @see Unpacker::Auto
+#
+# Some accessors have special meaning for those steps
+# * +library.url+
+# * +library.path+
+# * +library.archive+
+# 
+# Those steps should cover the basic needs for most of the Libraries you want
+# to build.
+#
+# @see Libraries::BaseLibrary
+class Libraries::Library < Libraries::BaseLibrary
+
+	def initialize *args
+		super *args
+
+		@steps = LBT::Steps.new()
+		# The default steps order
+		[ :fetcher, :verifier, :unpacker, :patcher, :preparer, :builder, :installer ].each do |name|
+			@steps << {
+				name: name,
+				instance: LBT::NoOp.new()
+			}
+		end
+
+		# Opinionated defaults
+		self.fetcher  = Fetcher::Auto.new()
+		self.unpacker = Unpacker::Auto.new()
+	end
+end
+
+# Adds the Library classes to the global scope.
+include Libraries

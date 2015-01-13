@@ -36,4 +36,29 @@ class Steps::Fetcher < LBT::StepsFabricator
 			return true
 		end
 	end
+
+	# This +Fetcher+ automatically calls the right +Fetcher+ depending on what the
+	# the +Library+ defines.
+	class Auto < LBT::Step
+		def run
+			inst = nil
+			if not @library.url.nil?
+				inst = HTTP.new @library.url
+			elsif not @library.path.nil?
+				inst = Copy.new @library.path
+			end
+			return if inst.nil?
+
+			inst.set_owner @library
+			inst.run
+		end
+
+		# When no step is automatically run, it should not be run.
+		def should_run
+			unless @library.path.nil? and @library.url.nil?
+				return true
+			end
+			return false
+		end
+	end
 end
