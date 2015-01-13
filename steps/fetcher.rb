@@ -16,9 +16,9 @@ class Steps::Fetcher < LBT::StepsFabricator
 			end
 			puts "Not found, will download."
 
-			if Functions.program_exists 'curl'
+			if Exec.program_exists 'curl'
 				return Exec.run "curl", "-L", @url, "-o", "#{$global_state.source_dir}/#{@library.archive}"
-			elsif Functions.program_exists 'wget'
+			elsif Exec.program_exists 'wget'
 				return Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{@library.archive} #{@url}", @url
 			else
 				puts 'No tool available to fetch from http.'
