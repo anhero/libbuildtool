@@ -224,7 +224,7 @@ libraries.each do |desc_filename|
 				abort
 			end
 
-			library.work_dir = "#{$global_state.build_dir}/#{library.name}"
+			library.work_dir = "#{$global_state.build_dir}/#{library.name.downcase.tr(' ', '_')}"
 			FileUtils.rm_rf library.work_dir if Dir.exist? library.work_dir
 			FileUtils.mkdir_p library.work_dir
 
