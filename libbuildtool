@@ -161,7 +161,6 @@ $global_state.libraries_list = "#{$global_state.project_dir}/#{DEFAULT_LIBRARIES
 
 show_banner
 
-libraries = []
 
 
 $build_options = nil
@@ -173,37 +172,35 @@ end
 $build_options.install_dir = $libbuildtool_params.install_dir
 
 
-#parsing libraries.desc
-begin
-	eval(File.open($global_state.libraries_list).read,nil,$global_state.libraries_list)
-rescue Exception => e
-	puts "Crashed while reading the libraries list!!!"
-	puts e.backtrace
-	puts e
-end
-
-
 
 #############################
 ### Directory Preparation ###
 #############################
-build_cache = []
+@build_cache = []
 if Dir.exist? $global_state.work_dir
 	if $libbuildtool_params.rebuild
 		FileUtils.rm_rf $global_state.build_dir
 	else
-		build_cache = JSON.parse(File.read($global_state.build_cache_path)) if File.exist? $global_state.build_cache_path
+		@build_cache = JSON.parse(File.read($global_state.build_cache_path)) if File.exist? $global_state.build_cache_path
 	end
 
 end
-	FileUtils.rm_rf $global_state.build_dir if Dir.exist? $global_state.build_dir
+FileUtils.rm_rf $global_state.build_dir if Dir.exist? $global_state.build_dir
 
-	FileUtils.mkdir_p $libbuildtool_params.install_dir
+FileUtils.mkdir_p $libbuildtool_params.install_dir
 
 
-	FileUtils.mkdir_p $global_state.work_dir
-	FileUtils.mkdir_p $global_state.source_dir
-	FileUtils.mkdir_p $global_state.build_dir
+FileUtils.mkdir_p $global_state.work_dir
+FileUtils.mkdir_p $global_state.source_dir
+FileUtils.mkdir_p $global_state.build_dir
+
+
+
+
+
+
+
+
 
 
 #################################
@@ -211,12 +208,8 @@ end
 #################################
 
 # Know which one we're building out of the total.
-lib_counter = 0
-
-libraries.each do |desc_filename|
-		lib_counter += 1
-		next if build_cache.include? desc_filename
-
+def build desc_filename
+	unless @build_cache.include? desc_filename
 		# FIXME : Scoping feels weird here. Find a better way to handle library, build_options scope.
 		begin
 			Dir.chdir $global_state.project_dir
@@ -240,7 +233,7 @@ libraries.each do |desc_filename|
 			FileUtils.mkdir_p library.work_dir
 
 			puts
-			puts_banner "#{library.name} (#{lib_counter}/#{libraries.count})"
+			puts_banner "#{library.name}"
 
 			# Here we're handling each steps registered.
 			steps_counter = 0
@@ -253,8 +246,8 @@ libraries.each do |desc_filename|
 				step[:instance].run
 			end
 
-			build_cache << desc_filename
-			File.write($global_state.build_cache_path, JSON.generate(build_cache))
+			@build_cache << desc_filename
+			File.write($global_state.build_cache_path, JSON.generate(@build_cache))
 
 		rescue Exception => e
 			puts "A problem occured while building #{desc_filename}."
@@ -262,7 +255,18 @@ libraries.each do |desc_filename|
 			puts e.backtrace
 			abort
 		end
+	end
 end
+
+#parsing libraries.desc
+begin
+	eval(File.open($global_state.libraries_list).read,nil,$global_state.libraries_list)
+rescue Exception => e
+	puts "Crashed while reading the libraries list!!!"
+	puts e.backtrace
+	puts e
+end
+
 
 puts
 puts_banner 'Done!'
