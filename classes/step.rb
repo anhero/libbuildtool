@@ -1,11 +1,23 @@
 module LBT
-	# Step class.
+	# A step in the build process of a library.
+	#
+	# An instance has a +Library+ associated with the step to query to get
+	# informations about siad library.
+	#
+	# It is important to implement the +run+ method, the default raises.
+	#
+	# @see Step#run
 	class Step
 		# Owner library. Needs to be set.
 		@library = nil
 
 		# The subclass' initialize method can be used to add other
-		# accessors used internally.
+		# accessors used internally by passing parameters on construction.
+		#
+		# By default, does nothing.
+		#
+		# @see Verifier::Hash Verifier::Hash for an example of custum constructor.
+		def initialize() end
 
 		# This method needs to be implemented by a subclass.
 		# 
@@ -19,16 +31,16 @@ module LBT
 			raise "Step#run() Not Implemented for #{self.class}"
 		end
 
-		# Used by the library to add itself to the step's scope.
+		# Used by the +Library+ to add itself to the step's scope.
 		#
-		# This allows the step to use @library.
+		# This allows the step to use +@library+.
 		def set_owner library
 			@library = library
 		end
 
 		# Defines whether the step should be run.
 		# 
-		# Defaults to true.
+		# Defaults to +true+.
 		# 
 		# Used mainly to hide steps that are doing nothing.
 		def should_run
@@ -41,16 +53,40 @@ module LBT
 	# they would be an eyesore otherwise!
 	class NoOp < Step
 		def initialize() end
+		# Does nothing if ran.
 		def run(*args) end
+		# Tells +libbuildtool+ not to run this step.
+		#
+		# @return false
 		def should_run() return false end
 	end
 end
 
+# This module is included in the global scope, makign make_step
+# accssible without the +LBT::StepMaker+ prefix.
 module LBT::StepMaker
 
-	# Makes an anonymous class and instance of class thereof
-	# that can be used used as a step, with the run method
-	# executing the block inside its scope.
+	# Shortcut to make a one-off step.
+	#
+	# Makes an anonymous +Class+ inheriting +Step+, and instance of 
+	# +class+ thereof that can be used used as a +Step+, 
+	# with the run method executing the block passed inside its scope.
+	#
+	# The block passed will have access to the internals of +Step+,
+	# making +@library+ available.
+	#
+	# @example
+	#   library.builder = make_step do
+	#     Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
+	#     Exec.run("./build.sh")
+	#   end
+	#
+	# Care should be taken when building a libraries list to not repeat
+	# those. If you find yourself repeating the bodies of those anonymous
+	# +Step+s, please implement subclassing +Step+.
+	#
+	# Reduce, Reuse, Recycle ♲
+	#
 	def make_step(&block)
 		anonymous_class = Class.new(LBT::Step) do
 			def initialize block
