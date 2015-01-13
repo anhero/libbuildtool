@@ -1,13 +1,19 @@
+# Steps used to unpack the software of library prior to building.
 class Steps::Unpacker < LBT::StepsFabricator
 
-	# The Unpacker::Auto might be the only class you will need
-	# to unpack stuff.
+	# Generic +Step+ that tries to unpack stuff automatically.
 	#
-	# If a /common/ container is not unpacked by this class, FILE A BUG
+	# It currently uses +library.archive+ as source file.
+	#
+	# It should handle tar files and zip files.
+	#
+	# If a common container is not unpacked by this class, *FILE A BUG*
 	# or even better, add it, it might not be that hard (I hope).
 	#
 	class Auto < LBT::Step
 		def initialize
+			# TODO : Accept filename as input and use instead of library.archive.
+			#        If no filename passed, use library.archive...
 		end
 
 		def run
@@ -50,11 +56,15 @@ class Steps::Unpacker < LBT::StepsFabricator
 			return false
 		end
 
+		# Implementation of the untarring feature.
 		def untar
+			# FIXME: Generalization by passing filename and outputdir
 			Exec.run "tar", "-C", @library.work_dir, "-xf", "#{$global_state.source_dir}/#{@library.archive}"
 		end
 
+		# Implementation of the unzipping feature.
 		def unzip
+			# FIXME: Generalization by passing filename and outputdir
 			Exec.run "unzip", "-d", @library.work_dir, "#{$global_state.source_dir}/#{@library.archive}"
 		end
 	end
