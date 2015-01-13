@@ -1,4 +1,27 @@
+# Steps generally used to build software and libraries.
 class Steps::Builder < LBT::StepsFabricator
+
+	# Builds using a +./configure && make+ -like pipeline.
+	#
+	# Uses properties of +library.options+.
+	#
+	# Those properties will be used as environment.
+	# * +CC+
+	# * +CXX+
+	# * +AR+
+	# * +CFLAGS+
+	# * +CPPFLAGS+
+	# * +LDFLAGS+
+	# * +WINDRES+
+	#
+	# The +library.options.configure_options+ +Array+ will be used as parameters
+	# to the +./configure+ command.
+	#
+	# The +library.options.install_dir+ will be used as +PREFIX+.
+	#
+	# Will +raise+ if +./configure+ or +make+ fails.
+	#
+	# @see Installer::MakeInstall
 	class ConfigureMake < LBT::Step
 		def run
 			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
@@ -21,4 +44,5 @@ class Steps::Builder < LBT::StepsFabricator
 			Exec.run(env, "make") or raise "make failed"
 		end
 	end
+
 end
