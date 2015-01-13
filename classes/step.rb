@@ -46,7 +46,7 @@ module LBT
 	end
 end
 
-module StepMaker
+module LBT::StepMaker
 
 	# Makes an anonymous class and instance of class thereof
 	# that can be used used as a step, with the run method

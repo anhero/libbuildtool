@@ -5,6 +5,14 @@ require 'ostruct'
 require 'json'
 require 'fileutils'
 
+# Module used to namespace internals.
+#
+# Stuff that is internal to libbuildtool is added to this module
+# to make the documentation cleaner.
+module LBT
+
+end
+
 require_relative 'classes/arraystruct.rb'
 require_relative 'classes/exec'
 require_relative 'classes/library'
@@ -22,7 +30,8 @@ require_relative 'steps/unpacker'
 require_relative 'steps/verifier'
 
 # Adding the StepMaker to the global scope
-include StepMaker
+# This should add only make_step
+include LBT::StepMaker
 
 # Include the Steps namespace into the global scope.
 include Steps
