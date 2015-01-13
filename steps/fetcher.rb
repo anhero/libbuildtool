@@ -1,8 +1,18 @@
 require 'net/http'
 
+# Steps generally used to get the software or library.
 class Steps::Fetcher < LBT::StepsFabricator
+
+	# Fetches an HTTP ressource.
+	#
+	# The URL used is the one passed to its constructor.
+	#
+	# Uses +library.archive+ as the output filename.
+	#
 	class HTTP < LBT::Step
+		# @param url URL to the ressource.
 		def initialize url
+			# TODO : Accept a filename as second parameter to generalize class.
 			@url     = url
 		end
 		def run
@@ -29,8 +39,15 @@ class Steps::Fetcher < LBT::StepsFabricator
 		end
 	end
 
+	# Copies a file or tree.
+	#
+	# The path used is the path passed to its constructor.
+	#
+	# Uses +library.archive+ as the destination.
+	#
 	class Copy < LBT::Step
 		def initialize path
+			# TODO : Accept a destination as second parameter to generalize class.
 			@path     = path
 		end
 		def run
@@ -41,6 +58,14 @@ class Steps::Fetcher < LBT::StepsFabricator
 
 	# This +Fetcher+ automatically calls the right +Fetcher+ depending on what the
 	# the +Library+ defines.
+	#
+	# Uses either
+	# * +library.url+
+	# * +library.path*
+	#
+	# It prefers +library.url+
+	#
+	# It is used as an opinionated default to +Library+.
 	class Auto < LBT::Step
 		def run
 			inst = nil
@@ -55,7 +80,7 @@ class Steps::Fetcher < LBT::StepsFabricator
 			inst.run
 		end
 
-		# When no step is automatically run, it should not be run.
+		# Will not run if it cannot find a path or url to fetch.
 		def should_run
 			unless @library.path.nil? and @library.url.nil?
 				return true
