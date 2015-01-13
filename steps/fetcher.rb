@@ -27,15 +27,12 @@ class Fetcher < LBT::StepsFabricator
 		end
 	end
 	class Copy < LBT::Step
-		def initialize archive
-			@library.archive = archive
+		def initialize path
+			@path     = path
 		end
 		def run
-			Dir.chdir $global_state.source_dir
-			path = @path || @url
-
 			dest = "#{$global_state.source_dir}/#{@library.archive}"
-			FileUtils.cp_r path, dest
+			FileUtils.cp_r @path, dest
 			return true
 		end
 	end
