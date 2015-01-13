@@ -11,7 +11,6 @@ class Unpacker < LBT::StepsFabricator
 		end
 
 		def run
-
 			if not @library.archive.nil?  and not File.exist? @library.archive
 				Dir.chdir $global_state.project_dir
 
@@ -41,7 +40,14 @@ class Unpacker < LBT::StepsFabricator
 					@library.build_subdir = (listing.first) if listing.length == 1
 				end
 			end
-			true
+		end
+
+		# Hides the step when no archive needs to be unpacked.
+		def should_run
+			if not @library.archive.nil?  and not File.exist? @library.archive
+				return true
+			end
+			return false
 		end
 
 		def untar

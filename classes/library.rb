@@ -44,11 +44,16 @@ class Library
 		self.unpacker = Unpacker::Auto.new()
 	end
 
+	# Returns the steps that should run.
 	def steps
-		# Selecting steps that are not a NoOp.
 		@steps.select do |step|
-			not step[:instance].is_a? LBT::NoOp
+			step[:instance].should_run
 		end
+	end
+
+	# Returns all steps, including +NoOp+s and those other that should not run.
+	def all_steps
+		@steps
 	end
 
 	def add_step name, v

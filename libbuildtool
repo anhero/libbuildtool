@@ -239,10 +239,7 @@ libraries.each do |desc_filename|
 				# Reset the directory for each step.
 				Dir.chdir $global_state.project_dir
 				# This is where the step is actually called.
-				status = step[:instance].run
-				unless status
-					throw "Step #{step[:name].capitalize} failed."
-				end
+				step[:instance].run
 			end
 
 			build_cache << desc_filename

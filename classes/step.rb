@@ -8,12 +8,31 @@ module LBT
 		# accessors used internally.
 
 		# This method needs to be implemented by a subclass.
+		# 
+		# The +run+ method's output value is not used.
+		# If +run+ fails, +raise+ should be used.
+		#
+		#     def run
+		#       Exec.run("false") or raise "An issue happened while running false."
+		#     end
 		def run *args
 			raise "Step#run() Not Implemented for #{self.class}"
 		end
 
+		# Used by the library to add itself to the step's scope.
+		#
+		# This allows the step to use @library.
 		def set_owner library
 			@library = library
+		end
+
+		# Defines whether the step should be run.
+		# 
+		# Defaults to true.
+		# 
+		# Used mainly to hide steps that are doing nothing.
+		def should_run
+			return true
 		end
 	end
 
@@ -23,6 +42,7 @@ module LBT
 	class NoOp < Step
 		def initialize() end
 		def run(*args) end
+		def should_run() return false end
 	end
 end
 
