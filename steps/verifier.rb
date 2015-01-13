@@ -1,8 +1,15 @@
 require 'digest'
 
+# Classes used to validate and verify archives.
 class Steps::Verifier < LBT::StepsFabricator
+
+	# Checks using the md5 sum if the file is corrupted or not.
+	#
+	# Uses +library.archive+ as file to verify.
 	class MD5 < LBT::Step
+		# @param hash The hash to verify against.
 		def initialize hash
+			# TODO : Accept filename and use if available.
 			@hash    = hash
 		end
 		def run
