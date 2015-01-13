@@ -22,6 +22,8 @@ require_relative 'steps/patcher'
 require_relative 'steps/unpacker'
 require_relative 'steps/verifier'
 
+# Adding the StepMaker to the global scope
+include StepMaker
 
 def show_banner
 	return unless $libbuildtool_params.show_banner

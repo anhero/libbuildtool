@@ -25,3 +25,19 @@ module LBT
 		def run(*args) end
 	end
 end
+
+module StepMaker
+
+	# Makes an anonymous class and instance of class thereof
+	# that can be used used as a step, with the run method
+	# executing the block inside its scope.
+	def make_step(&block)
+		anonymous_class = Class.new(LBT::Step) do
+			@@block = block
+			def run
+				return instance_exec(&@@block)
+			end
+		end
+		anonymous_class.new
+	end
+end
