@@ -33,11 +33,13 @@ module StepMaker
 	# executing the block inside its scope.
 	def make_step(&block)
 		anonymous_class = Class.new(LBT::Step) do
-			@@block = block
+			def initialize block
+				@block = block
+			end
 			def run
-				return instance_exec(&@@block)
+				instance_exec &@block
 			end
 		end
-		anonymous_class.new
+		anonymous_class.new block
 	end
 end
