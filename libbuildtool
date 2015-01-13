@@ -5,17 +5,22 @@ require 'ostruct'
 require 'json'
 require 'fileutils'
 
-require_relative 'classes/patch'
 require_relative 'classes/arraystruct.rb'
-require_relative 'classes/functions'
-require_relative 'classes/os'
-require_relative 'classes/library'
-require_relative 'classes/fetch'
-require_relative 'classes/unpack'
-require_relative 'classes/build'
-require_relative 'classes/install'
-require_relative 'classes/platforms'
 require_relative 'classes/exec'
+require_relative 'classes/functions'
+require_relative 'classes/library'
+require_relative 'classes/licenses'
+require_relative 'classes/os'
+require_relative 'classes/platforms'
+require_relative 'classes/step.rb'
+require_relative 'classes/stepsfabricator.rb'
+require_relative 'classes/steps.rb'
+require_relative 'steps/builder'
+require_relative 'steps/fetcher'
+require_relative 'steps/installer'
+require_relative 'steps/patcher'
+require_relative 'steps/unpacker'
+require_relative 'steps/verifier'
 
 current_dir = Dir.pwd
 
@@ -182,129 +187,58 @@ master_build_options.prefix = $options.install_dir
 
 #################################
 ### Libraries build iteration ###
-################################
-libraries.each do |desc_filename|
-		next if build_cache.include? desc_filename
-		build_options = master_build_options.clone
+#################################
 
+# Know which one we're building out of the total.
+lib_counter = 0
+
+libraries.each do |desc_filename|
+		lib_counter += 1
+		next if build_cache.include? desc_filename
+
+		# FIXME : Scoping feels weird here. Find a better way to handle library, build_options scope.
 		begin
 			Dir.chdir $global_state.current_dir
+			# Used for the backtrace.
+			fname = "#{Dir.pwd}/#{desc_filename}"
 			# Holder for the library configuration.
-			library = Library.new
 
-			# Default values
-			library.build   = Build.configure_make
-			library.install = Install.make_install
+			# This next variable is used in the libary description file.
+			build_options = master_build_options.clone
 
-			eval(File.open("#{desc_filename}").read)
+			# Pre-scope library
+			library = nil
+			begin
+				eval(File.open(desc_filename).read, nil, fname)
+			rescue Exception => e
+				puts "A problem occured while parsing/running #{desc_filename}..."
+				throw e
+			end
 
 			puts
-			puts_banner library.name
-			puts
+			puts_banner "#{library.name} (#{lib_counter}/#{libraries.count})"
 
-			# The fetch method used is dependent of the configuration.
-			library.fetch ||= ((library.url.nil? and not library.path.nil?) ?  Fetch.local : Fetch.http)
-
-### FETCH ###
-			Dir.chdir $global_state.source_dir
-
-			if not File.exist? library.archive and library.fetch
-				scriptSuccess = library.fetch.call library
-				throw "Fetch script failed for #{library.name}" if not scriptSuccess
+			# Here we're handling each steps registered.
+			steps_counter = 0
+			library.steps.each do |step|
+				steps_counter += 1
+				puts "\n→ Doing step (#{steps_counter}/#{library.steps.count}) #{step[:name].capitalize}"
+				# Reset the directory for each step.
+				Dir.chdir $global_state.current_dir
+				# This is where the step is actually called.
+				step[:instance].run
 			end
-
-### HASH ###
-			Dir.chdir $global_state.source_dir
-
-			archiveIsValid = true
-			archiveIsValid = Functions.checkFileHash library.hash, library.archive if library.hash
-
-			if not archiveIsValid
-				throw "Hash for #{library.name} do not match with the given archive."
-			end
-
-### UNPACK ###
-			Dir.chdir $global_state.current_dir
-
-			FileUtils.mkdir_p build_dir
-			if not library.unpack
-				if(library.archive.include? '.tar' or library.archive.include? 'tgz')
-					library.unpack = Unpack.tar
-				elsif(library.archive.include? '.zip')
-					library.unpack = Unpack.zip
-				end
-			end
-			library.work_dir = "#{build_dir}/#{library.name}"
-			FileUtils.rm_rf library.work_dir if Dir.exist? library.work_dir
-			FileUtils.mkdir_p library.work_dir
-			scriptSuccess = library.unpack.call library, source_dir, library.work_dir
-			throw "Unpack script failed for #{library.name}" if not scriptSuccess
-
-			if library.build_subdir.nil?
-				to_ignore = ["__MACOSX", ".", ".."]
-				listing = Dir.entries library.work_dir
-				to_ignore.each do |ignored|
-					listing.delete ignored
-				end
-				# If there's only one component in the directory, go into it.
-				library.build_subdir = (listing.first) if listing.length == 1
-			end
-
-
-### PATCH ###
-			Dir.chdir $global_state.current_dir
-			unless library.patcher
-				unless library.patch.nil?
-					if File.directory? library.patch then
-						library.patcher = Patch.copy
-					else
-						# library.patcher = Patch.copy
-					end
-				end
-			end
-
-			if library.patcher
-				scriptSuccess = library.patcher.call library, build_options
-				throw "Patch script failed for #{library.name}" if not scriptSuccess
-			end
-
-
-### PREPARE BUILD ###
-			Dir.chdir $global_state.current_dir
-
-			if library.prepare_build
-				scriptSuccess = library.prepare_build.call library, build_options
-				throw "The prepare_build script failed for #{library.name}" if not scriptSuccess
-			end
-
-### BUILD ###
-			Dir.chdir $global_state.current_dir
-
-			if library.build
-				scriptSuccess = library.build.call library, build_options
-				throw "Build script failed for #{library.name}" if not scriptSuccess
-			end
-
-### INSTALL ###
-			Dir.chdir $global_state.current_dir
-
-			if library.install
-				library.install = Install.make_install if not library.install
-				scriptSuccess = library.install.call library, build_options
-				throw "Install script failed for #{library.name}" if not scriptSuccess
-			end
-
 
 			build_cache << desc_filename
 			File.write(build_cache_path, JSON.generate(build_cache))
 
 		rescue Exception => e
-			#FileUtils.rm_rf build_dir
-			puts "Crashed while building #{desc_filename}!!"
-			puts e.backtrace
+			puts "A problem occured while building #{desc_filename}."
 			puts e
+			puts e.backtrace
 			abort
 		end
 end
 
+puts
 puts_banner 'Done!'

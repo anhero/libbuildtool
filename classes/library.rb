@@ -1,12 +1,70 @@
+# The Library is both the representation of the library
+# and the holder of the steps needed to build it.
+#
+# You can pass any named parameter to .new() to have
+# its properties filled.
+#
+# You can still fill those properties by the accessor
+# just as you could before.
+#
 class Library
-	attr_accessor :name, :hash, :license, :version,
-	              :archive, :url, :path, :fetch,
-	              :patch, :patcher, :unpack,
-	              :build, :install, :prepare_build,
-	              :build_subdir, :work_dir
+	attr_accessor :name, :version, :license,
+	              :build_subdir, :work_dir, :prefix
 
-	def initialize
+	# Used to pass the archive name between many steps.
+	attr_accessor :archive, :url
 
+	def initialize *args
+		# Options hash
+		options = {}
+		if args.last.is_a? Hash then
+			options = args.pop
+		end
+		options.each do |name, value|
+			name = "@#{name}".to_sym
+			self.instance_variable_set name, value
+		end
+
+		@steps = LBT::Steps.new()
+		# The default steps order
+		[ :fetcher, :verifier, :unpacker, :preparer, :builder, :installer ].each do |name|
+			@steps << {
+				name: name,
+				instance: LBT::NoOp.new()
+			}
+		end
+
+		# Opinionated defaults
+		self.unpacker = Unpacker::Auto.new()
 	end
 
+	def steps
+		# Selecting steps that are not a NoOp.
+		@steps.select do |step|
+			not step[:instance].is_a? LBT::NoOp
+		end
+	end
+
+	def add_step name, v
+		v.set_owner self
+		@steps << {
+			name: name,
+			instance: v,
+		}
+	end
+
+	# method_missing implements magic 'stepname'er accessors.
+	def method_missing method, *args
+		# to add steps magically with stepnameer = StepClass.new
+		if method[-3..-1] == "er=" then
+			method = method[0..-2].to_sym
+			v = args.shift
+			add_step method, v
+		# to add steps magically with stepnameer StepClass.new
+		elsif method[-2..-1] == "er" then
+			return @steps.find method
+		else
+			super.method_missing method, *args
+		end
+	end
 end
