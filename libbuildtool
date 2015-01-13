@@ -85,7 +85,7 @@ end
 			$libbuildtool_params.install_dir = dir
 		end
 
-		opts.on('-s', '--project-dir', '=DIR', 'Project directory.', "Default: #{$libbuildtool_params.project_dir}") do |dir|
+		opts.on('--project-dir', '=DIR', 'Project directory.', "Default: #{$libbuildtool_params.project_dir}") do |dir|
 			$libbuildtool_params.project_dir = dir
 		end
 
