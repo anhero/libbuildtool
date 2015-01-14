@@ -17,6 +17,12 @@ module Libraries end
 # You can fill any field through their accessor as you
 # would an OpenStruct.
 #
+# @note BaseLibrary and Library makes use of a global variable, +$build_options+,
+#       which is particular to +libbuildtool+. It is a collection of options that
+#       is configured by the platform and arguments passed to +libbuildtool+. It
+#       is blackboxed, so the implementation details are not important, but it
+#       explains how +@options+ is built.
+#
 class Libraries::BaseLibrary < OpenStruct
 	attr_accessor :options
 
@@ -89,6 +95,12 @@ end
 # 
 # Those steps should cover the basic needs for most of the Libraries you want
 # to build.
+#
+# @note BaseLibrary and Library makes use of a global variable, +$build_options+,
+#       which is particular to +libbuildtool+. It is a collection of options that
+#       is configured by the platform and arguments passed to +libbuildtool+. It
+#       is blackboxed, so the implementation details are not important, but it
+#       explains how +@options+ is built.
 #
 # @see Libraries::BaseLibrary
 class Libraries::Library < Libraries::BaseLibrary

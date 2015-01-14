@@ -64,6 +64,7 @@ end
 ### Options and parameters handling ###
 #######################################
 
+	# Default name of the libraries main file.
 	DEFAULT_LIBRARIES_LIST = 'libraries.rb'
 	$libbuildtool_params = OpenStruct.new(
 			:show_banner    => true,
