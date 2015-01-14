@@ -62,12 +62,10 @@ class ArrayStruct < OpenStruct
 			if len != 1
 				raise ArgumentError, "wrong number of arguments (#{len} for 1)", caller(1)
 			end
-			val = args[0]
-			#Automatically wrap in an ArrayStrucElement, unless it is an ArrayStructElement
-			if not val.is_a?(ArrayStructElement) then
-				val = ArrayStructElement.new(val)
-			end
-			modifiable[new_ostruct_member(mname)] = val
+			# Add the new member to the defined methods.
+			new_ostruct_member(mname)
+			# Then use it as it has custom behaviour.
+			self.send(mid, *args)
 		elsif len == 0 && mid != :[]
 			self[mid]
 		else
@@ -90,7 +88,13 @@ class ArrayStruct < OpenStruct
 	  name = name.to_sym
 	  unless respond_to?(name)
 		define_singleton_method(name) { @table[name] }
-		define_singleton_method("#{name}=") { |x| modifiable[name] = x }
+		define_singleton_method("#{name}=") { |x| 
+			#Automatically wrap in an ArrayStrucElement, unless it is an ArrayStructElement
+			if not x.is_a?(ArrayStructElement) then
+				x = ArrayStructElement.new(x)
+			end
+			modifiable[name] = x
+		}
 	  end
 	  name
 	end
