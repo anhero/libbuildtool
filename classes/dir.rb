@@ -1,7 +1,9 @@
 # Extensions to the Ruby's +Dir+ class.
 class Dir
-	# This function goes into a subdirectory when
-	# only one subdirectory is available.
+	# This function goes into a subdirectory when only one subdirectory is available
+	#
+	# @return [Numeric] Value of +Dir.chdir()+ for the subdirectory if there is one.
+	# @return [Boolean] false if no +chdir()+ occured.
 	def self.gotoSubDir
 		# Those folders are to be ignored.
 		to_ignore = ["__MACOSX", ".", ".."]

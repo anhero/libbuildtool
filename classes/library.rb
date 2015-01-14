@@ -1,12 +1,12 @@
 require 'ostruct'
 
-# Holds the Library classes.
+# Holds the Library classes
 #
 # @see Libraries::Library
 # @see Libraries::BaseLibrary
 module Libraries end
 
-# The non-opinionated Library.
+# The non-opinionated Library
 #
 # The Library is both the representation of the library
 # and the holder of the steps needed to build it.
@@ -24,8 +24,12 @@ module Libraries end
 #       explains how +@options+ is built.
 #
 class Libraries::BaseLibrary < OpenStruct
+	# Holds an +ArrayStruct+ of options
+	#
+	# @return Options +clone()+ gathered from the global +$build_options+
 	attr_accessor :options
 
+	# A new instance of BaseLibrary
 	def initialize *args
 		super *args
 
@@ -34,6 +38,9 @@ class Libraries::BaseLibrary < OpenStruct
 	end
 
 	# Accesses a specific element as you would with a +Hash+
+	#
+	# @return [ArrayStructElement] new +ArrayStructElement+ if it did not exist beforehand.
+	# @return [ArrayStructElement] Existing +ArrayStructElement+.
 	def [](name)
 		if @table[name].nil? then
 			@table[name] = ArrayStructElement.new()
@@ -41,18 +48,28 @@ class Libraries::BaseLibrary < OpenStruct
 		@table[name]
 	end
 
-	# Returns the steps that should run.
+	# Returns the steps that should run
+	#
+	# @return Collection of +Step+s selected according to +Step#should_run+
 	def steps
 		@steps.select do |step|
 			step[:instance].should_run
 		end
 	end
 
-	# Returns all steps, including +NoOp+s and those other that should not run.
+	# Returns all steps, including +NoOp+s and those other that should not run
+	#
+	# @return [Steps] All steps.
 	def all_steps
 		@steps
 	end
 
+	# Adds the passed +Step+ to the internal +Step+s collection
+	#
+	# @param name Name of the step.
+	# @param v    The +Step+ instance to add.
+	#
+	# @return [Steps] Collection of +Step+s
 	def add_step name, v
 		v.set_owner self
 		@steps << {
@@ -61,7 +78,9 @@ class Libraries::BaseLibrary < OpenStruct
 		}
 	end
 
-	# method_missing implements magic 'stepname'er accessors.
+	# method_missing implements magic 'stepname'er accessors
+	#
+	# @return Depends on what method was automatically called.
 	def method_missing method, *args
 		# to add steps magically with stepnameer = StepClass.new
 		if method[-3..-1] == "er=" then
@@ -105,6 +124,7 @@ end
 # @see Libraries::BaseLibrary
 class Libraries::Library < Libraries::BaseLibrary
 
+	# A new instance of Library
 	def initialize *args
 		super *args
 

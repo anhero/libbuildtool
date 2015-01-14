@@ -38,6 +38,7 @@ require 'ostruct'
 
 class ArrayStruct < OpenStruct
 
+	# Returns a new instance of ArrayStruct
 	def initialize(hash=nil)
 		@table = {}
 		if hash
@@ -55,6 +56,8 @@ class ArrayStruct < OpenStruct
 	#    p myas.prop
 	#
 	#    => "bob"
+	#
+	# @return
 	def method_missing(mid, *args)
 		mname = mid.id2name
 		len = args.length
@@ -74,6 +77,8 @@ class ArrayStruct < OpenStruct
 	end
 
 	# Accesses a specific element as you would with a +Hash+
+	#
+	# @return [ArrayStructElement] The specific element asked for, or a new ArrayStructElement
 	def [](name)
 		if @table[name].nil? then
 			@table[name] = ArrayStructElement.new()
@@ -82,8 +87,9 @@ class ArrayStruct < OpenStruct
 	end
 
 	protected
-	# Used internally.
+	# Used internally
 	# @private
+	# @return The name of the new member.
 	def new_ostruct_member(name)
 	  name = name.to_sym
 	  unless respond_to?(name)
@@ -101,13 +107,13 @@ class ArrayStruct < OpenStruct
 end
 
 
-# A specialization of +Array+ for semantic sugar.
+# A specialization of +Array+ for semantic sugar
 #
 # It is used mainly to allow overriding its +.to_s()+ method.
 #
 class ArrayStruct::ArrayStructElement < Array
 
-	# A new instance of ArrayStructElement.
+	# A new instance of ArrayStructElement
 	#
 	# It can be initialized with nothing, giving an empty array.
 	#     ase = ArrayStructElement.new()
@@ -155,7 +161,7 @@ class ArrayStruct::ArrayStructElement < Array
 		end
 	end
 
-	# Joins the elements of the array as a string, using space as a default separator.
+	# Joins the elements of the array as a string, using space as a default separator
 	#
 	# When you want to use another separator for the collection, you should
 	# use +.join(sep)+ on the collection, as it presents the intention better.
@@ -172,6 +178,7 @@ class ArrayStruct::ArrayStructElement < Array
 	#     p myas.PATH.to_s(":")
 	#     => "/bin:/sbin"
 	#
+	# @return [String] The string representation of the ArrayStructElement.
 	def to_s(arg=' ')
 		self.join(arg)
 	end

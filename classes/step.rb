@@ -11,6 +11,8 @@ module LBT
 		# Owner library. Needs to be set.
 		@library = nil
 
+		# A new instance of Step
+		#
 		# The subclass' initialize method can be used to add other
 		# accessors used internally by passing parameters on construction.
 		#
@@ -19,7 +21,7 @@ module LBT
 		# @see Verifier::Hash Verifier::Hash for an example of custum constructor.
 		def initialize() end
 
-		# This method needs to be implemented by a subclass.
+		# This method needs to be implemented by a subclass
 		# 
 		# The +run+ method's output value is not used.
 		# If +run+ fails, +raise+ should be used.
@@ -27,46 +29,55 @@ module LBT
 		#     def run
 		#       Exec.run("false") or raise "An issue happened while running false."
 		#     end
+		#
+		# @return [void]
 		def run *args
 			raise "Step#run() Not Implemented for #{self.class}"
 		end
 
-		# Used by the +Library+ to add itself to the step's scope.
+		# Used by the +Library+ to add itself to the step's scope
 		#
 		# This allows the step to use +@library+.
+		#
+		# @param library [Library] +Library+ that owns this +Step+
+		#
+		# @return [Object] Passed value
 		def set_owner library
 			@library = library
 		end
 
-		# Defines whether the step should be run.
+		# Defines whether the step should be run
 		# 
 		# Defaults to +true+.
 		# 
 		# Used mainly to hide steps that are doing nothing.
+		#
+		# @return [Boolean] true as default.
 		def should_run
 			return true
 		end
 	end
 
-	# A special step that does nothing.
+	# A special step that does nothing
+	#
 	# Special care should be used to hide them when running steps,
 	# they would be an eyesore otherwise!
 	class NoOp < Step
-		def initialize() end
-		# Does nothing if ran.
+		# Does nothing if ran
+		#
+		# @return [void]
 		def run(*args) end
-		# Tells +libbuildtool+ not to run this step.
+		# Tells +libbuildtool+ not to run this step
 		#
 		# @return false
 		def should_run() return false end
 	end
 end
 
-# This module is included in the global scope, makign make_step
-# accssible without the +LBT::StepMaker+ prefix.
+# Namespace for make_step, should be included in global scope
 module LBT::StepMaker
 
-	# Shortcut to make a one-off step.
+	# Shortcut to make a one-off step
 	#
 	# Makes an anonymous +Class+ inheriting +Step+, and instance of 
 	# +class+ thereof that can be used used as a +Step+, 
@@ -87,6 +98,9 @@ module LBT::StepMaker
 	#
 	# Reduce, Reuse, Recycle ♲
 	#
+	# @param [Proc] block Block to use for the +run+ method.
+	#
+	# @return [LBT::Step] Instance of +Step+ which will run passed +block+.
 	def make_step(&block)
 		anonymous_class = Class.new(LBT::Step) do
 			def initialize block

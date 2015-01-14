@@ -10,11 +10,16 @@ class Steps::Fetcher < LBT::StepsFabricator
 	# Uses +library.archive+ as the output filename.
 	#
 	class HTTP < LBT::Step
+		# A new instance of Fetcher::HTTP
+		# 
 		# @param url URL to the ressource.
 		def initialize url
 			# TODO : Accept a filename as second parameter to generalize class.
 			@url     = url
 		end
+
+		# Runs the step
+		# @return [void]
 		def run
 			Dir.chdir $global_state.source_dir
 
@@ -46,10 +51,16 @@ class Steps::Fetcher < LBT::StepsFabricator
 	# Uses +library.archive+ as the destination.
 	#
 	class Copy < LBT::Step
+		# A new instance of Fetcher::Copy
+		# 
+		# @param path The path used as source for the copy operation.
 		def initialize path
 			# TODO : Accept a destination as second parameter to generalize class.
 			@path     = path
 		end
+
+		# Runs the step
+		# @return [void]
 		def run
 			dest = "#{$global_state.source_dir}/#{@library.archive}"
 			FileUtils.cp_r @path, dest
@@ -67,6 +78,8 @@ class Steps::Fetcher < LBT::StepsFabricator
 	#
 	# It is used as an opinionated default to +Library+.
 	class Auto < LBT::Step
+		# Runs the step
+		# @return [void]
 		def run
 			inst = nil
 			if not @library.url.nil?
@@ -80,7 +93,8 @@ class Steps::Fetcher < LBT::StepsFabricator
 			inst.run
 		end
 
-		# Will not run if it cannot find a path or url to fetch.
+		# Will not run if it cannot find a path or url to fetch
+		# @return [Boolean] true if it will run.
 		def should_run
 			unless @library.path.nil? and @library.url.nil?
 				return true

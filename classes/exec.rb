@@ -7,12 +7,14 @@
 
 class Exec
 
-	# Shortcut for +Kernel.system()+ when system is disabled.
+	# Shortcut for +Kernel.system()+ when +system+ is disabled
+	#
+	# @return See +Kernel.system+
 	def self._sys(*args)
 		Kernel.system(*args)
 	end
 
-	# Run external programs.
+	# Run external programs
 	#
 	# The parameters are handled in a special way, as it would for +Process.spawn()+.
 	#
@@ -88,7 +90,7 @@ class Exec
 		return $? == 0
 	end
 
-	# Shortcut for system's +which+ command.
+	# Shortcut for system's +which+ command
 	#
 	# @return +true+ if the program is available.
 	# @return +false+ otherwise.

@@ -23,6 +23,8 @@ class Steps::Builder < LBT::StepsFabricator
 	#
 	# @see Installer::MakeInstall
 	class ConfigureMake < LBT::Step
+		# Runs the step
+		# @return [void]
 		def run
 			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
 			env = {}

@@ -9,6 +9,8 @@ class Steps::Installer < LBT::StepsFabricator
 	#
 	# @see Builder::ConfigureMake
 	class MakeInstall < LBT::Step
+		# Runs the step
+		# @return [void]
 		def run
 			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
 			Exec.run("make", "install")
@@ -21,6 +23,8 @@ class Steps::Installer < LBT::StepsFabricator
 	# Uses +library.options.install_dir+ as the target path.
 	#
 	class CopyHeaders < LBT::Step
+		# Runs the step
+		# @return [void]
 		def run
 			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
 			FileUtils.mkdir_p "#{@library.options.install_dir.join}/include"

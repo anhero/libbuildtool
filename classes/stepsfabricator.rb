@@ -1,5 +1,5 @@
 module LBT
-	# Holds +Step+ subclasses and allows a magic constructor to be used.
+	# Holds +Step+ subclasses and allows a magic constructor to be used
 	#
 	# For +Fetcher+, +Verifier+, etc...
 	#
@@ -32,7 +32,9 @@ module LBT
 	# @see Step Step for more informations about Steps.
 	class StepsFabricator
 
-		# Implements the magic constructor.
+		# Implements the magic constructor
+		#
+		# @return [LBT::Step] Instance of step according to the name used.
 		def self.method_missing(method, *args)
 			unless self.constants.include? method
 				raise "#{self.name}::#{method} not found."

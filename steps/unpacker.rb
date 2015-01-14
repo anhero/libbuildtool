@@ -11,11 +11,15 @@ class Steps::Unpacker < LBT::StepsFabricator
 	# or even better, add it, it might not be that hard (I hope).
 	#
 	class Auto < LBT::Step
+
+		# A new instance of Unpacker::Auto
 		def initialize
 			# TODO : Accept filename as input and use instead of library.archive.
 			#        If no filename passed, use library.archive...
 		end
 
+		# Runs the step
+		# @return [void]
 		def run
 			if not @library.archive.nil?  and not File.exist? @library.archive
 				Dir.chdir $global_state.project_dir
@@ -48,7 +52,8 @@ class Steps::Unpacker < LBT::StepsFabricator
 			end
 		end
 
-		# Hides the step when no archive needs to be unpacked.
+		# Hides the step when no archive needs to be unpacked
+		# @return [Boolean] true if it will run.
 		def should_run
 			if not @library.archive.nil?  and not File.exist? @library.archive
 				return true
@@ -56,13 +61,15 @@ class Steps::Unpacker < LBT::StepsFabricator
 			return false
 		end
 
-		# Implementation of the untarring feature.
+		# Implementation of the untarring feature
+		# @return [Boolean] true if succeeded.
 		def untar
 			# FIXME: Generalization by passing filename and outputdir
 			Exec.run "tar", "-C", @library.work_dir, "-xf", "#{$global_state.source_dir}/#{@library.archive}"
 		end
 
-		# Implementation of the unzipping feature.
+		# Implementation of the unzipping feature
+		# @return [Boolean] true if succeeded.
 		def unzip
 			# FIXME: Generalization by passing filename and outputdir
 			Exec.run "unzip", "-d", @library.work_dir, "#{$global_state.source_dir}/#{@library.archive}"
