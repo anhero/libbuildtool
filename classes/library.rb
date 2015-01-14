@@ -32,6 +32,7 @@ class Libraries::BaseLibrary < OpenStruct
 	# A new instance of BaseLibrary
 	def initialize *args
 		super *args
+		@steps = LBT::Steps.new()
 
 		# This is a global state that we clone.
 		@options = $build_options.clone
@@ -127,8 +128,6 @@ class Libraries::Library < Libraries::BaseLibrary
 	# A new instance of Library
 	def initialize *args
 		super *args
-
-		@steps = LBT::Steps.new()
 		# The default steps order
 		[ :fetcher, :verifier, :unpacker, :patcher, :preparer, :builder, :installer ].each do |name|
 			@steps << {
