@@ -1,3 +1,4 @@
+require_relative 'step'
 # Holds a collection of +Step+s.
 #
 # It proxies some of the methods to its internal +Array+.
@@ -16,7 +17,8 @@ class LBT::Steps
 	#
 	# The name passed should be a symbol, but an explicit conversion is used.
 	#
-	# @return The +Step+
+	# @return [LBT::Step] The +Step+
+	# @returb [Boolean] if the +Step+ could not be found
 	def find name
 		unless name.is_a? Symbol
 			name = name.to_sym
@@ -25,6 +27,8 @@ class LBT::Steps
 		@steps.each do |step|
 			return step[:instance] if step[:name] == name
 		end
+		# We did not early return, thus have found nothing.
+		return false
 	end
 
 	# Tries to replace a +Step+ by another +Step+ with the same +:name+
@@ -74,6 +78,12 @@ class LBT::Steps
 	# @return [int]
 	def count
 		@steps.count
+	end
+	# Proxies to +@steps.first+
+	#
+	# @return [Object]
+	def first *args
+		@steps.first *args
 	end
 
 end

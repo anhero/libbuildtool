@@ -1,4 +1,5 @@
 require 'ostruct'
+require_relative 'steps'
 
 # Holds the Library classes
 #
@@ -74,23 +75,34 @@ class Libraries::BaseLibrary < OpenStruct
 	def add_step name, v
 		v.set_owner self
 		@steps << {
-			name: name,
+			name: name.to_sym,
 			instance: v,
 		}
 	end
 
-	# method_missing implements magic 'stepname'er accessors
+	# Implements magic! Takes +Step+s in +@steps+.
+	#
+	# It will do mainly what it would for OpenStruct, namely making accessors
+	# for variable names, but will special-case +Step+ and add it to +@steps+.
 	#
 	# @return Depends on what method was automatically called.
 	def method_missing method, *args
-		# to add steps magically with stepnameer = StepClass.new
-		if method[-3..-1] == "er=" then
-			method = method[0..-2].to_sym
-			v = args.shift
-			add_step method, v
-		# to add steps magically with stepnameer StepClass.new
-		elsif method[-2..-1] == "er" then
-			return @steps.find method
+		if args.count > 1
+			raise ArgumentError, "wrong number of arguments (#{args.count} for 0..1)", caller(1)
+		end
+
+		# Assume get, will bail out.
+		if args.count == 0
+			val = @steps.find method
+			return val if val
+			return super method, *args
+		end
+		
+		# Assume set
+		if args.first.is_a? LBT::Step then
+			val = args.shift
+			delete_field(method[0..-2]) if self.respond_to? method[0..-2]
+			add_step method[0..-2], val
 		else
 			super method, *args
 		end
