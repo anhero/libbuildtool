@@ -1,10 +1,9 @@
-#
+require 'shellwords'
+
 # Exec
 #
 # Allows safer execution of external dependencies.
 # Wraps +Process.spawn+, using proper +IO+ for +stdin/stdout/stderr+ handling.
-#
-
 class Exec
 
 	# Shortcut for +Kernel.system()+ when +system+ is disabled
@@ -79,9 +78,10 @@ class Exec
 			end
 		end
 
-		# FIXME : Better output commandline
+		# Uses shellwords to output a command that should be copy-pastable in a shell.
+		# FIXME : Will not output env though.
 		unless options[:silent] then
-			puts "$> \"#{args.join('" "')}\""
+			puts "$> #{args.shelljoin}"
 		end
 		pid = Process.spawn(env, *args, spawn_options)
 		Process.wait(pid)

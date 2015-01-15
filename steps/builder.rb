@@ -41,7 +41,6 @@ class Steps::Builder < LBT::StepsFabricator
 			build_command << "./configure"
 			build_command.push *(@library.options.configure_options)
 			build_command << "--prefix=#{@library.options.install_dir.join}"
-			puts build_command
 			Exec.run(env, *build_command) or raise "./configure failed."
 			Exec.run(env, "make") or raise "make failed"
 		end
