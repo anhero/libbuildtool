@@ -18,7 +18,7 @@ class LBT::Steps
 	# The name passed should be a symbol, but an explicit conversion is used.
 	#
 	# @return [LBT::Step] The +Step+
-	# @returb [Boolean] if the +Step+ could not be found
+	# @return [Boolean] if the +Step+ could not be found
 	def find name
 		unless name.is_a? Symbol
 			name = name.to_sym

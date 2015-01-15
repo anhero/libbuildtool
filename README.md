@@ -78,7 +78,7 @@ for inspiration.
 The documentation API can be generated using [YARD](http://yardoc.org/). It
 is not currently hosted anywhere, but we'll try to soon.
 
-Projects using `libbuildtiool`
+Projects using `libbuildtool`
 ------------------------------
 
   * https://github.com/anhero/BaconBox
