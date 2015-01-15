@@ -86,6 +86,14 @@ class ArrayStruct < OpenStruct
 		@table[name]
 	end
 
+	# Call block with pairs or returns an Enumerator
+	#
+	# @see Hash#each_pair
+	def each_pair
+		return to_enum __method__ unless block_given?
+		@table.each_pair{|p| yield p}
+	end
+
 	protected
 	# Used internally
 	# @private
@@ -99,7 +107,7 @@ class ArrayStruct < OpenStruct
 			if not x.is_a?(ArrayStructElement) then
 				x = ArrayStructElement.new(x)
 			end
-			modifiable[name] = x
+			@table[name] = x
 		}
 	  end
 	  name

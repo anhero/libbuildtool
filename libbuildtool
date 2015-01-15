@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# encoding: UTF-8
 
 require 'optparse'
 require 'ostruct'
@@ -259,7 +260,7 @@ def build desc_filename
 			end
 
 			@build_cache << desc_filename
-			File.write($global_state.build_cache_path, JSON.generate(@build_cache))
+			File.open($global_state.build_cache_path, "w").write(JSON.generate(@build_cache))
 
 		rescue Exception => e
 			puts "A problem occured while building #{desc_filename}."
