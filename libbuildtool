@@ -263,7 +263,7 @@ def build desc_filename
 			File.open($global_state.build_cache_path, "w").write(JSON.generate(@build_cache))
 
 		rescue Exception => e
-			puts "A problem occured while building #{desc_filename}."
+			puts "A problem occured while building #{desc_filename}. Last working directory: #{Dir.pwd}"
 			puts e
 			puts e.backtrace
 			abort
@@ -274,6 +274,8 @@ end
 #parsing libraries.desc
 begin
 	eval(File.open($global_state.libraries_list).read,nil,$global_state.libraries_list)
+	puts
+	puts_banner 'Done!'
 rescue Exception => e
 	puts "Crashed while reading the libraries list!!!"
 	puts e.backtrace
@@ -281,5 +283,4 @@ rescue Exception => e
 end
 
 
-puts
-puts_banner 'Done!'
+

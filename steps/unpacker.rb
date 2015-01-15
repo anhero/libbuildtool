@@ -21,7 +21,7 @@ class Steps::Unpacker < LBT::StepsFabricator
 		# Runs the step
 		# @return [void]
 		def run
-			if not @library.archive.nil?  and not File.exist? @library.archive
+			if not @library.archive.nil?
 				Dir.chdir $global_state.project_dir
 
 				FileUtils.mkdir_p $global_state.build_dir
@@ -36,6 +36,8 @@ class Steps::Unpacker < LBT::StepsFabricator
 					scriptSuccess = untar
 				elsif(@library.archive.include? '.zip')
 					scriptSuccess = unzip
+				elsif File.directory? @library.archive
+					scriptSuccess = copy
 				end
 
 				throw "Unpack script failed for #{@library.name}" if not scriptSuccess
@@ -55,7 +57,7 @@ class Steps::Unpacker < LBT::StepsFabricator
 		# Hides the step when no archive needs to be unpacked
 		# @return [Boolean] true if it will run.
 		def should_run
-			if not @library.archive.nil?  and not File.exist? @library.archive
+			if not @library.archive.nil?
 				return true
 			end
 			return false
@@ -73,6 +75,11 @@ class Steps::Unpacker < LBT::StepsFabricator
 		def unzip
 			# FIXME: Generalization by passing filename and outputdir
 			Exec.run "unzip", "-d", @library.work_dir, "#{$global_state.source_dir}/#{@library.archive}"
+		end
+
+		def copy
+			FileUtils.cp_r "#{$global_state.source_dir}/#{@library.archive}", @library.work_dir
+			true
 		end
 	end
 end

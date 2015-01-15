@@ -42,7 +42,50 @@ class Steps::Builder < LBT::StepsFabricator
 			build_command.push *(@library.options.configure_options)
 			build_command << "--prefix=#{@library.options.install_dir.join}"
 			Exec.run(env, *build_command) or raise "./configure failed."
-			Exec.run(env, "make") or raise "make failed"
+
+			build_command = []
+			build_command << "make"
+			build_command.push *(@library.options.make_options)
+			Exec.run(env, *build_command) or raise "make failed"
+		end
+	end
+
+
+	class CMakeMake < LBT::Step
+
+		def run
+			@library.options.build_dir = "#{@library.work_dir}/#{@library.build_subdir}" if @library.options.build_dir.empty?
+			Dir.chdir @library.options.build_dir.join
+			env = {}
+			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :LDFLAGS, :WINDRES].each do |var|
+				value = @library.options[var]
+				if value.length > 0 then
+					env[var.to_s] = value.join(' ')
+				end
+			end
+
+			@library.options.CMAKE =  'cmake' if @library.options.CMAKE.empty?
+			@library.options.CMAKE_DIR = '.' if @library.options.CMAKE_DIR.empty?
+			@library.options.CMAKE_BUILD_TYPE =  'MinSizeRel' if @library.options.CMAKE_BUILD_TYPE.empty?
+
+			cmake_build_type = @library.options.CMAKE_BUILD_TYPE || "MinSizeRel"
+
+			build_command = []
+			build_command << @library.options.CMAKE.join
+			build_command << '-G'
+			build_command << 'Unix Makefiles'
+			build_command.push *(@library.options.cmake_options)
+			build_command << "-DCMAKE_INSTALL_PREFIX=#{@library.options.install_dir}"
+			build_command << "-DCMAKE_BUILD_TYPE=#{@library.options.CMAKE_BUILD_TYPE}"
+			build_command << "#{@library.options.CMAKE_DIR}"
+
+			puts build_command
+			Exec.run(env, *build_command) or raise "cmake failed."
+
+			build_command = []
+			build_command << "make"
+			build_command.push *(@library.options.make_options)
+			Exec.run(env, *build_command) or raise "make failed"
 		end
 	end
 

@@ -63,6 +63,10 @@ class Steps::Fetcher < LBT::StepsFabricator
 		# Runs the step
 		# @return [void]
 		def run
+			if ::File.exist? @library.archive
+				puts "Found, will not copy."
+				return
+			end
 			dest = "#{$global_state.source_dir}/#{@library.archive}"
 			FileUtils.cp_r @path, dest
 		end
