@@ -7,21 +7,28 @@ class Steps::Unpacker < LBT::StepsFabricator
 	#
 	# It should handle tar files and zip files.
 	#
+	# The +Unpacker+ +Step+ will also auto-discover the sub-directory of
+	# an archive and fill-in the +@library.build_subdir+ property with
+	# that subdirectory. It will be used by +Builder+ +Step+s.
+	#
 	# If a common container is not unpacked by this class, *FILE A BUG*
 	# or even better, add it, it might not be that hard (I hope).
 	#
 	class Auto < LBT::Step
 
 		# A new instance of Unpacker::Auto
-		def initialize
-			# TODO : Accept filename as input and use instead of library.archive.
-			#        If no filename passed, use library.archive...
+		def initialize options = {}
+			@archive = options[:archive]
 		end
 
 		# Runs the step
 		# @return [void]
 		def run
-			if not @library.archive.nil?
+			# When it's not passed to the constructor, it might be available
+			# in the current library options.
+			@archive = @library.archive unless @archive
+
+			if not @archive.nil?
 				Dir.chdir $global_state.project_dir
 
 				FileUtils.mkdir_p $global_state.build_dir
@@ -32,17 +39,18 @@ class Steps::Unpacker < LBT::StepsFabricator
 				FileUtils.mkdir_p @library.work_dir
 
 				scriptSuccess = false
-				if(@library.archive.include? '.tar' or @library.archive.include? 'tgz')
-					scriptSuccess = untar
-				elsif(@library.archive.include? '.zip')
-					scriptSuccess = unzip
-				elsif File.directory? @library.archive
-					scriptSuccess = copy
+				if(@archive.include? '.tar' or @archive.include? 'tgz')
+					scriptSuccess = untar "#{$global_state.source_dir}/#{@archive}", @library.work_dir
+				elsif(@archive.include? '.zip')
+					scriptSuccess = unzip "#{$global_state.source_dir}/#{@archive}", @library.work_dir
+				elsif File.directory? @archive
+					scriptSuccess = copy "#{$global_state.source_dir}/#{@archive}", @library.work_dir
 				end
 
 				throw "Unpack script failed for #{@library.name}" if not scriptSuccess
 
-				# TODO : Verify if there's not a better place to discover if a subdir is needed.
+				# As documented, +@library.build_subdir+ is filled out here if it
+				# wasn't previously set.
 				if @library.build_subdir.nil?
 					to_ignore = ["__MACOSX", ".", ".."]
 					listing = Dir.entries @library.work_dir
@@ -57,7 +65,11 @@ class Steps::Unpacker < LBT::StepsFabricator
 		# Hides the step when no archive needs to be unpacked
 		# @return [Boolean] true if it will run.
 		def should_run
-			if not @library.archive.nil?
+			# When it's not passed to the constructor, it might be available
+			# in the current library options.
+			@archive = @library.archive unless @archive
+
+			if not @archive.nil?
 				return true
 			end
 			return false
@@ -65,20 +77,18 @@ class Steps::Unpacker < LBT::StepsFabricator
 
 		# Implementation of the untarring feature
 		# @return [Boolean] true if succeeded.
-		def untar
-			# FIXME: Generalization by passing filename and outputdir
-			Exec.run "tar", "-C", @library.work_dir, "-xf", "#{$global_state.source_dir}/#{@library.archive}"
+		def untar src, out
+			Exec.run "tar", "-C", out, "-xf", src
 		end
 
 		# Implementation of the unzipping feature
 		# @return [Boolean] true if succeeded.
-		def unzip
-			# FIXME: Generalization by passing filename and outputdir
-			Exec.run "unzip", "-d", @library.work_dir, "#{$global_state.source_dir}/#{@library.archive}"
+		def unzip src, out
+			Exec.run "unzip", "-d", out, src
 		end
 
-		def copy
-			FileUtils.cp_r "#{$global_state.source_dir}/#{@library.archive}", @library.work_dir
+		def copy src, out
+			FileUtils.cp_r src, out
 			true
 		end
 	end

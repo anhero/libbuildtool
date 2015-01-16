@@ -14,19 +14,20 @@ class Steps::Fetcher < LBT::StepsFabricator
 		# A new instance of Fetcher::HTTP
 		# 
 		# @param url URL to the ressource.
-		def initialize url
-			# TODO : Accept a filename as second parameter to generalize class.
+		def initialize url, options = {}
 			@url     = url
+			@archive = options[:archive]
 		end
 
 		# Runs the step
 		# @return [void]
 		def run
+			@archive = @library.archive unless @archive
 			Dir.chdir $global_state.source_dir
 
 			# Early-bailing to not download multiple times.
-			puts "Checking for existence of file #{@library.archive}"
-			if ::File.exist? @library.archive
+			puts "Checking for existence of file #{@archive}"
+			if ::File.exist? @archive
 				puts "Found, will not download."
 				return
 			end
@@ -34,10 +35,10 @@ class Steps::Fetcher < LBT::StepsFabricator
 			puts " → #{@url}"
 
 			if Functions.program_exists 'curl'
-				 Exec.run "curl", "-L", @url, "-o", "#{$global_state.source_dir}/#{@library.archive}" or raise "Could not download file."
+				 Exec.run "curl", "-L", @url, "-o", "#{$global_state.source_dir}/#{@archive}" or raise "Could not download file."
 				 return
 			elsif Functions.program_exists 'wget'
-				 Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{@library.archive} #{@url}", @url or raise "Could not download file."
+				 Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{@archive} #{@url}", @url or raise "Could not download file."
 				 return
 			else
 				raise 'No tool available to fetch from http.'
@@ -55,19 +56,20 @@ class Steps::Fetcher < LBT::StepsFabricator
 		# A new instance of Fetcher::Copy
 		# 
 		# @param path The path used as source for the copy operation.
-		def initialize path
-			# TODO : Accept a destination as second parameter to generalize class.
+		def initialize path, options = {}
 			@path     = path
+			@archive  = options[:archive]
 		end
 
 		# Runs the step
 		# @return [void]
 		def run
-			if ::File.exist? @library.archive
+			@archive = @library.archive unless @archive
+			if ::File.exist? @archive
 				puts "Found, will not copy."
 				return
 			end
-			dest = "#{$global_state.source_dir}/#{@library.archive}"
+			dest = "#{$global_state.source_dir}/#{@archive}"
 			FileUtils.cp_r @path, dest
 		end
 	end

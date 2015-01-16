@@ -10,17 +10,18 @@ class Steps::Verifier < LBT::StepsFabricator
 		# A new instance of Verifier::MD5
 		#
 		# @param hash The hash to verify against.
-		def initialize hash
-			# TODO : Accept filename and use if available.
+		def initialize hash, options = {}
 			@hash    = hash
+			@archive = options[:archive]
 		end
 
 		# Runs the step
 		# @return [void]
 		def run
+			@archive = @library.archive unless @archive
 			Dir.chdir $global_state.source_dir
 			hashGenerator = Digest.const_get 'MD5'
-			valid = hashGenerator.file(@library.archive) == @hash
+			valid = hashGenerator.file(@archive) == @hash
 			if valid
 				puts "File is valid"
 			else

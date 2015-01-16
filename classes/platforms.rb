@@ -40,7 +40,7 @@ module Platforms
 				break
 			end
 		end
-		# FIXME : (Enhancement) Add upper/lower case fuzzy matching and proposition.
+		# TODO : (Enhancement) Add upper/lower case fuzzy matching and proposition.
 		unless Dir.exists? platform_package_path
 			puts " platform : #{platform_name}"
 			puts "Searched into :"
