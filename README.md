@@ -14,6 +14,50 @@ making it slimmer and less encumbered.
     |____/__||___  /___  /____/|__|____/\____ | |__|  \____/ \____/|____/
                  \/    \/                    \/                          
 
+Installation
+------------
+
+`libbuildtool` is meant to be run as a standalone Ruby utility and is currently
+not packaged nor integrated into the gem ecosystem.
+
+The current installation method for `libbuildtool` consist mainly in cloning the
+repository in a convenient location and either invoking `libbuildtool` by its full
+path or using a shim script in your PATH to invoke it.
+
+### Instructions
+
+You could blindly follow those instructions, but I'd like you to think whether each
+step is right for you and adapt them as you might need.
+
+    # Make or use a folder for locally-installed software
+    mkdir -p "$HOME/.opt/"
+    # Go into that folder
+    cd "$HOME/.opt/"
+    # Clone the repository with a canonical name
+    git clone https://github.com/anhero/libbuildtool.git libbuildtool
+    # Verify the presence of the `libbuildtool` script
+    ls -l "$HOME/.opt/libbuildtool/libbuildtool"
+
+Once this is done,  you should be able to invoke `libbuildtool` with its full path.
+
+    $HOME/.opt/libbuildtool/libbuildtool --help
+
+If you want to be able to call it using only `libbuildtool` you could alias it
+to your shell, or make a wrapper script that will call `libbuildtool` directly.
+
+    # Assuming "$HOME/.bin/" is in your $PATH
+    cd "$HOME/.bin"
+    # Add a script
+    cat <<'EOF' > libbuildtool
+    #!/bin/sh
+    exec "$HOME/.opt/libbuildtool/libbuildtool" "${@}"
+    EOF
+    # Make it executable
+    chmod a+x libbuildtool
+    # Verify it works
+    libbuildtool --help
+
+You should now be able to use `libbuildtool` directly.
 
 Usage (user)
 ------------
