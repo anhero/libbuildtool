@@ -12,7 +12,8 @@ class Steps::Installer < LBT::StepsFabricator
 		# Runs the step
 		# @return [void]
 		def run
-			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
+			@library.options.build_dir = "#{@library.work_dir}/#{@library.build_subdir}" if @library.options.build_dir.empty?
+			Dir.chdir @library.options.build_dir.join
 			Exec.run("make", "install")
 		end
 	end
@@ -26,7 +27,8 @@ class Steps::Installer < LBT::StepsFabricator
 		# Runs the step
 		# @return [void]
 		def run
-			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
+			@library.options.build_dir = "#{@library.work_dir}/#{@library.build_subdir}" if @library.options.build_dir.empty?
+			Dir.chdir @library.options.build_dir.join
 			FileUtils.mkdir_p "#{@library.options.install_dir.join}/include"
 			headers = []
 			headers += Dir.glob('**/*.h')
