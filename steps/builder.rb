@@ -26,9 +26,10 @@ class Steps::Builder < LBT::StepsFabricator
 		# Runs the step
 		# @return [void]
 		def run
-			Dir.chdir "#{@library.work_dir}/#{@library.build_subdir}"
+			@library.options.build_dir = "#{@library.work_dir}/#{@library.build_subdir}" if @library.options.build_dir.empty?
+			Dir.chdir @library.options.build_dir.join
 			env = {}
-			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :LDFLAGS, :WINDRES].each do |var|
+			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :CXXFLAGS, :LDFLAGS, :WINDRES].each do |var|
 				value = @library.options[var]
 				if value.length > 0 then
 					env[var.to_s] = value.join(' ')
@@ -37,8 +38,11 @@ class Steps::Builder < LBT::StepsFabricator
 			# FIXME : Allow "other" environment variables to be added... OR make everything work the same way...
 			#build_command += "#{@options.environment.join(' ')} "
 
+			@library.options.CONFIGURE =  './configure' if @library.options.CONFIGURE.empty?
+
+
 			build_command = []
-			build_command << "./configure"
+			build_command << "#{@library.options.CONFIGURE}"
 			build_command.push *(@library.options.configure_options)
 			build_command << "--prefix=#{@library.options.install_dir.join}"
 			Exec.run(env, *build_command) or raise "./configure failed."
@@ -57,7 +61,7 @@ class Steps::Builder < LBT::StepsFabricator
 			@library.options.build_dir = "#{@library.work_dir}/#{@library.build_subdir}" if @library.options.build_dir.empty?
 			Dir.chdir @library.options.build_dir.join
 			env = {}
-			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :LDFLAGS, :WINDRES].each do |var|
+			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :CXXFLAGS, :LDFLAGS, :WINDRES].each do |var|
 				value = @library.options[var]
 				if value.length > 0 then
 					env[var.to_s] = value.join(' ')
