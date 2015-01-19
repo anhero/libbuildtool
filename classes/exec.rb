@@ -79,13 +79,17 @@ class Exec
 		end
 
 		# Uses shellwords to output a command that should be copy-pastable in a shell.
-		# FIXME : Will not output env though.
 		unless options[:silent] then
 			env_print = ''
 			env.each do |k, v|
 				env_print << %{#{k}="#{v}" }
 			end
-			puts "$>#{env_print} #{args.shelljoin}"
+			# Will not shell-escape the printed string when shelling out.
+			if args.length == 1
+				puts "$>#{env_print} #{args[0]}"
+			else
+				puts "$>#{env_print} #{args.shelljoin}"
+			end
 		end
 		pid = Process.spawn(env, *args, spawn_options)
 		Process.wait(pid)
