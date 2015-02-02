@@ -34,10 +34,10 @@ class Steps::Fetcher < LBT::StepsFabricator
 			puts "Not found, will download."
 			puts " → #{@url}"
 
-			if Functions.program_exists 'curl'
+			if Exec.program_exists 'curl'
 				 Exec.run "curl", "-L", @url, "-o", "#{$global_state.source_dir}/#{@archive}" or raise "Could not download file."
 				 return
-			elsif Functions.program_exists 'wget'
+			elsif Exec.program_exists 'wget'
 				 Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{@archive} #{@url}", @url or raise "Could not download file."
 				 return
 			else
