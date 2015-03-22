@@ -260,7 +260,7 @@ def build desc_filename
 			end
 
 			@build_cache << desc_filename
-			File.open($global_state.build_cache_path, "w").write(JSON.generate(@build_cache))
+			File.open($global_state.build_cache_path, "w").write(JSON.pretty_generate(@build_cache))
 
 		rescue Exception => e
 			puts "A problem occured while building #{desc_filename}. Last working directory: #{Dir.pwd}"
