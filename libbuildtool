@@ -256,7 +256,9 @@ def build desc_filename
 				# Reset the directory for each step.
 				Dir.chdir $global_state.project_dir
 				# This is where the step is actually called.
-				step[:instance].run
+				unless step[:instance].run then
+					throw "Step (#{steps_counter}/#{library.steps.count}) #{step[:name].capitalize} failed."
+				end
 			end
 
 			@build_cache << desc_filename

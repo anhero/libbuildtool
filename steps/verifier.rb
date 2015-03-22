@@ -21,11 +21,13 @@ class Steps::Verifier < LBT::StepsFabricator
 			@archive = @library.archive unless @archive
 			Dir.chdir $global_state.source_dir
 			hashGenerator = Digest.const_get 'MD5'
-			valid = hashGenerator.file(@archive) == @hash
+			curr_hash = hashGenerator.file(@archive)
+			valid = curr_hash == @hash
 			if valid
 				puts "File is valid"
 			else
 				puts "File is invalid"
+				puts "Expected hash : #{@hash}, got #{curr_hash}"
 			end
 			return valid
 		end

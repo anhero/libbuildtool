@@ -29,17 +29,15 @@ class Steps::Fetcher < LBT::StepsFabricator
 			puts "Checking for existence of file #{@archive}"
 			if ::File.exist? @archive
 				puts "Found, will not download."
-				return
+				return true
 			end
 			puts "Not found, will download."
 			puts " → #{@url}"
 
 			if Exec.program_exists 'curl'
-				 Exec.run "curl", "-L", @url, "-o", "#{$global_state.source_dir}/#{@archive}" or raise "Could not download file."
-				 return
+				return (Exec.run "curl", "-L", @url, "-o", "#{$global_state.source_dir}/#{@archive}" or raise "Could not download file.")
 			elsif Exec.program_exists 'wget'
-				 Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{@archive} #{@url}", @url or raise "Could not download file."
-				 return
+				return (Exec.run "wget", "--no-check-certificate", "-O", "#{$global_state.source_dir}/#{@archive} #{@url}", @url or raise "Could not download file.")
 			else
 				raise 'No tool available to fetch from http.'
 			end
@@ -69,7 +67,7 @@ class Steps::Fetcher < LBT::StepsFabricator
 
 			if ::File.exist? dest
 				puts "Found, will not copy."
-				return
+				return true
 			end
 			FileUtils.cp_r @path, dest
 		end
@@ -95,7 +93,7 @@ class Steps::Fetcher < LBT::StepsFabricator
 			elsif not @library.path.nil?
 				inst = Copy.new @library.path
 			end
-			return if inst.nil?
+			return false if inst.nil?
 
 			inst.set_owner @library
 			inst.run
