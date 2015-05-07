@@ -38,11 +38,19 @@ class Steps::Builder < LBT::StepsFabricator
 			# FIXME : Allow "other" environment variables to be added... OR make everything work the same way...
 			#build_command += "#{@options.environment.join(' ')} "
 
-			@library.options.CONFIGURE =  './configure' if @library.options.CONFIGURE.empty?
 
+			# Here we pass ./configure through sh because on some platforms (windos), the 
+			# ./configure call does not resolve properly.
+			# This might break, if it does, revert, but think of a method for platform-dependant calls.
+			@library.options.CONFIGURE =  ['sh', './configure'] if @library.options.CONFIGURE.empty?
+
+			# Wraps in an array for backwards compatibility's sake.
+			unless @library.options.CONFIGURE.is_a? Array
+				@library.options.CONFIGURE = [ @library.options.CONFIGURE ]
+			end
 
 			build_command = []
-			build_command << "#{@library.options.CONFIGURE}"
+			build_command.push *(@library.options.CONFIGURE)
 			build_command.push *(@library.options.configure_options)
 			build_command << "--prefix=#{@library.options.install_dir.join}"
 			Exec.run(env, *build_command) or raise "./configure failed."
