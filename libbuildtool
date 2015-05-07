@@ -262,6 +262,7 @@ def build desc_filename
 			library.steps.each do |step|
 				steps_counter += 1
 				puts "\n→ Doing step (#{steps_counter}/#{library.steps.count}) #{step[:name].capitalize}"
+				STDOUT.flush
 				# Reset the directory for each step.
 				Dir.chdir $global_state.project_dir
 				# This is where the step is actually called.

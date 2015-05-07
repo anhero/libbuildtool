@@ -91,6 +91,9 @@ class Exec
 				puts "$>#{env_print} #{args.shelljoin}"
 			end
 		end
+		# Flush anything before the child process wants to output stuff.
+		STDOUT.flush
+		STDERR.flush
 		pid = Process.spawn(env, *args, spawn_options)
 		Process.wait(pid)
 
