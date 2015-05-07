@@ -64,6 +64,15 @@ def puts_banner text, col = 40, char = '*'
 	puts ''.rjust(col, char)
 end
 
+if not ENV['MSYSTEM'] and ENV['OS'].match(/Windows.*/) then
+	$PLATFORM = ENV['OS'].strip
+	# For now, hardcode 32bits bitness
+	$PLATFORM_HW = "win32".strip
+else
+	$PLATFORM = "#{`uname -s`}".strip
+	$PLATFORM_HW = "#{`uname -m`}".strip
+end
+
 #######################################
 ### Options and parameters handling ###
 #######################################
@@ -74,7 +83,7 @@ end
 			:show_banner    => true,
 			:libraries_list   => nil,
 			:rebuild => false,
-			:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
+			:install_dir => "#{Dir.pwd}/#{$PLATFORM}/#{$PLATFORM_HW}",
 			:work_dir => "#{Dir.pwd}/workdir",
 			:platform => nil,
 			:project_dir => Dir.pwd
