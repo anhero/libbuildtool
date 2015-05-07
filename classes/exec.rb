@@ -59,8 +59,8 @@ class Exec
 		spawn_options = {}
 
 		if options[:silent] then
-			spawn_options[:err] = '/dev/null'
-			spawn_options[:out] = '/dev/null'
+			spawn_options[:out] = File::NULL
+			spawn_options[:err] = :out
 		end
 
 		if options[:stdin] then
