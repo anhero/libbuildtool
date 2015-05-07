@@ -29,7 +29,8 @@ class Steps::Builder < LBT::StepsFabricator
 			@library.options.build_dir = "#{@library.work_dir}/#{@library.build_subdir}" if @library.options.build_dir.empty?
 			Dir.chdir @library.options.build_dir.join
 			env = {}
-			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :CXXFLAGS, :LDFLAGS, :WINDRES].each do |var|
+			[:CC, :CXX, :AR, :CFLAGS, :CPPFLAGS, :CXXFLAGS, :LDFLAGS,
+			 :WINDRES, :PATH, :LD_LIBRARY_PATH, :LIBRARY_PATH].each do |var|
 				value = @library.options[var]
 				if value.length > 0 then
 					env[var.to_s] = value.join(' ')
