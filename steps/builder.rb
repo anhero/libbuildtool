@@ -88,6 +88,7 @@ class Steps::Builder < LBT::StepsFabricator
 			build_command << '-G'
 			build_command << 'Unix Makefiles'
 			build_command.push *(@library.options.cmake_options)
+			build_command << "-DCMAKE_PREFIX_PATH=#{@library.options.install_dir}"
 			build_command << "-DCMAKE_INSTALL_PREFIX=#{@library.options.install_dir}"
 			build_command << "-DCMAKE_BUILD_TYPE=#{@library.options.CMAKE_BUILD_TYPE}"
 			build_command << "#{@library.options.CMAKE_DIR}"
