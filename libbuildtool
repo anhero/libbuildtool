@@ -64,7 +64,7 @@ def puts_banner text, col = 40, char = '*'
 	puts ''.rjust(col, char)
 end
 
-if not ENV['MSYSTEM'] and ENV['OS'].match(/Windows.*/) then
+if not ENV['MSYSTEM'] and ENV['OS'] and ENV['OS'].match(/Windows.*/) then
 	$PLATFORM = ENV['OS'].strip
 	# For now, hardcode 32bits bitness
 	$PLATFORM_HW = "win32".strip
