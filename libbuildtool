@@ -176,7 +176,8 @@ end
 	end
 @optionParser.permute!
 
-$libbuildtool_params.platform.permute! if 	$libbuildtool_params.platform
+$libbuildtool_params.platform.permute!  if $libbuildtool_params.platform
+$libbuildtool_params.platform.validate! if $libbuildtool_params.platform
 
 
 ###############################
