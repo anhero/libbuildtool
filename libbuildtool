@@ -64,10 +64,21 @@ def puts_banner text, col = 40, char = '*'
 	puts ''.rjust(col, char)
 end
 
+# FIXME : Properly handle from a base Platform class. Still allow those shortcuts.
+# Shortcut for the Platform Name
+$PLATFORM = "unknown"
+# Shortcut for the Platform Hardware
+$PLATFORM_HW = "unknown"
+
+# FIXME : Move into the base Platform class.
+# Discover the current platform
+# Firt, try windows without MinGW stuff.
 if not ENV['MSYSTEM'] and ENV['OS'] and ENV['OS'].match(/Windows.*/) then
 	$PLATFORM = ENV['OS'].strip
 	# For now, hardcode 32bits bitness
 	$PLATFORM_HW = "win32".strip
+# Else, we assume uname availability.
+# It should be quite a sure bet right now.
 else
 	$PLATFORM = "#{`uname -s`}".strip
 	$PLATFORM_HW = "#{`uname -m`}".strip
@@ -144,6 +155,11 @@ end
 			$libbuildtool_params.platform = Platforms.get_platform platform
 			$libbuildtool_params.platform = $libbuildtool_params.platform.new
 			$libbuildtool_params.platform_name = platform
+
+			# FIXME : Re-query from platform; it might be different than the passed param... (eg: meta platforms)
+			$PLATFORM = platform
+			# FIXME : Platform class should have a way to query this.
+			$PLATFORM_HW = nil
 		end
 
 		opts.on('--list-platform-options', 'Lists the options of the platform.') do
