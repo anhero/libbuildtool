@@ -49,9 +49,10 @@ module Platforms
 					puts "    Because of the 'straightforward' design of libbuildtool, it is"
 					puts "    currently not possible to loop inside libbuildtool to build"
 					puts "    multiple targets."
-					puts "    As a workaround, here's a bash for loop that you can use:"
-					puts "     for arch in armv7 armv7s arm64 universal; do"
-					puts "        libbuildtool -p IOS -- --sdk=iPhoneOS8.1 --arch=$arch ;"
+					puts "    As a workaround, here's a set of bash commands that you can use:"
+					puts "     libbuildtool --rebuild -p IOS -- --sdk=iPhoneSimulator8.1 --arch=x86_64 ;"
+					puts "     for arch in x86_64 armv7 armv7s arm64 universal; do"
+					puts "        libbuildtool --rebuild -p IOS -- --sdk=iPhoneOS8.1 --arch=$arch ;"
 					puts "     done"
 					puts "    As long as the semicolons are at the right place, it can be"
 					puts "    used as a one-liner."
@@ -93,8 +94,8 @@ module Platforms
 			# FIXME : Check those defaults...
 			@build_options.CFLAGS << "-pipe -Wno-trigraphs -Wreturn-type -Wunused-variable"
 			@build_options.CFLAGS << ([
-				#"#{minversion}", # Used? Needed?
 				"-isysroot", @build_options.sdk_root,
+				"-miphoneos-version-min=7.0",
 				"-arch", @build_options.arch
 			].join(" "))
 			@build_options.CXXFLAGS = @build_options.CFLAGS
