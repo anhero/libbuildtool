@@ -81,8 +81,6 @@ class Steps::Builder < LBT::StepsFabricator
 			@library.options.CMAKE_DIR = '.' if @library.options.CMAKE_DIR.empty?
 			@library.options.CMAKE_BUILD_TYPE =  'MinSizeRel' if @library.options.CMAKE_BUILD_TYPE.empty?
 
-			cmake_build_type = @library.options.CMAKE_BUILD_TYPE || "MinSizeRel"
-
 			build_command = []
 			build_command << @library.options.CMAKE.join
 			build_command << '-G'
@@ -90,7 +88,9 @@ class Steps::Builder < LBT::StepsFabricator
 			build_command.push *(@library.options.cmake_options)
 			build_command << "-DCMAKE_PREFIX_PATH=#{@library.options.install_dir}"
 			build_command << "-DCMAKE_INSTALL_PREFIX=#{@library.options.install_dir}"
-			build_command << "-DCMAKE_BUILD_TYPE=#{@library.options.CMAKE_BUILD_TYPE}"
+
+			# FIXME : Do not hardcode CMAKE options but instead loop on @library.options.CMAKE_*
+			build_command << "-DCMAKE_BUILD_TYPE=#{@library.options.CMAKE_BUILD_TYPE || "MinSizeRel"}"
 			build_command << "#{@library.options.CMAKE_DIR}"
 
 			puts build_command
