@@ -78,13 +78,18 @@ class Steps::Unpacker < LBT::StepsFabricator
 		# Implementation of the untarring feature
 		# @return [Boolean] true if succeeded.
 		def untar src, out
-			Exec.run "tar", "-C", out, "-xf", src
+			# Default tar tool
+			tar = "tar"
+			# Unless bsdtar exists
+			tar = "bsdtar" if Exec.program_exists "bsdtar"
+
+			Exec.run tar, *(@library.options.unpacker_options), "-C", out, "-xf", src
 		end
 
 		# Implementation of the unzipping feature
 		# @return [Boolean] true if succeeded.
 		def unzip src, out
-			Exec.run "unzip", "-d", out, src
+			Exec.run "unzip", *(@library.options.unpacker_options), "-d", out, src
 		end
 
 		def copy src, out

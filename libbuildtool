@@ -64,6 +64,26 @@ def puts_banner text, col = 40, char = '*'
 	puts ''.rjust(col, char)
 end
 
+# FIXME : Properly handle from a base Platform class. Still allow those shortcuts.
+# Shortcut for the Platform Name
+$PLATFORM = "unknown"
+# Shortcut for the Platform Hardware
+$PLATFORM_HW = "unknown"
+
+# FIXME : Move into the base Platform class.
+# Discover the current platform
+# Firt, try windows without MinGW stuff.
+if not ENV['MSYSTEM'] and ENV['OS'] and ENV['OS'].match(/Windows.*/) then
+	$PLATFORM = ENV['OS'].strip
+	# For now, hardcode 32bits bitness
+	$PLATFORM_HW = "win32".strip
+# Else, we assume uname availability.
+# It should be quite a sure bet right now.
+else
+	$PLATFORM = "#{`uname -s`}".strip
+	$PLATFORM_HW = "#{`uname -m`}".strip
+end
+
 #######################################
 ### Options and parameters handling ###
 #######################################
@@ -74,7 +94,7 @@ end
 			:show_banner    => true,
 			:libraries_list   => nil,
 			:rebuild => false,
-			:install_dir => "#{Dir.pwd}/#{`uname -s`.rstrip}/#{`uname -m`.rstrip}",
+			:install_dir => "#{Dir.pwd}/#{$PLATFORM}/#{$PLATFORM_HW}",
 			:work_dir => "#{Dir.pwd}/workdir",
 			:platform => nil,
 			:project_dir => Dir.pwd
@@ -135,6 +155,11 @@ end
 			$libbuildtool_params.platform = Platforms.get_platform platform
 			$libbuildtool_params.platform = $libbuildtool_params.platform.new
 			$libbuildtool_params.platform_name = platform
+
+			# FIXME : Re-query from platform; it might be different than the passed param... (eg: meta platforms)
+			$PLATFORM = platform
+			# FIXME : Platform class should have a way to query this.
+			$PLATFORM_HW = nil
 		end
 
 		opts.on('--list-platform-options', 'Lists the options of the platform.') do
@@ -151,7 +176,8 @@ end
 	end
 @optionParser.permute!
 
-$libbuildtool_params.platform.permute! if 	$libbuildtool_params.platform
+$libbuildtool_params.platform.permute!  if $libbuildtool_params.platform
+$libbuildtool_params.platform.validate! if $libbuildtool_params.platform
 
 
 ###############################
@@ -253,6 +279,7 @@ def build desc_filename
 			library.steps.each do |step|
 				steps_counter += 1
 				puts "\n→ Doing step (#{steps_counter}/#{library.steps.count}) #{step[:name].capitalize}"
+				STDOUT.flush
 				# Reset the directory for each step.
 				Dir.chdir $global_state.project_dir
 				# This is where the step is actually called.
