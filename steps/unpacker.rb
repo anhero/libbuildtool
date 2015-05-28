@@ -43,7 +43,7 @@ class Steps::Unpacker < LBT::StepsFabricator
 					scriptSuccess = untar "#{$global_state.source_dir}/#{@archive}", @library.work_dir
 				elsif(@archive.include? '.zip')
 					scriptSuccess = unzip "#{$global_state.source_dir}/#{@archive}", @library.work_dir
-				elsif File.directory? @archive
+				elsif File.directory? "#{$global_state.source_dir}/#{@archive}"
 					scriptSuccess = copy "#{$global_state.source_dir}/#{@archive}", @library.work_dir
 				end
 
