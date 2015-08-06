@@ -12,9 +12,17 @@ class Steps::Installer < LBT::StepsFabricator
 		# Runs the step
 		# @return [void]
 		def run
+			env = {}
+
+			@library.options.make_install_target = "install" if @library.options.make_install_target.empty?
 			@library.options.build_dir = "#{@library.work_dir}/#{@library.build_subdir}" if @library.options.build_dir.empty?
 			Dir.chdir @library.options.build_dir.join
-			Exec.run("make", "install")
+			build_command = []
+			build_command << "make"
+			build_command.push *(@library.options.make_install_target)
+			build_command.push *(@library.options.make_install_options)
+
+			Exec.run(env, *build_command) or raise "make install failed"
 		end
 	end
 
