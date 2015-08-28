@@ -306,10 +306,17 @@ begin
 	puts
 	puts_banner 'Done!'
 rescue Exception => e
-	puts "Crashed while reading the libraries list!!!"
+	puts "+--------------------------------------------------------+"
+	puts "| Something happened.                                    |"
+	puts "+--------------------------------------------------------+"
+	puts "| Crashed while reading or executing the libraries list. |"
+	puts "| Read and copy the output before and after this text    |"
+	puts "| when reporting issues.                                 |"
+	puts "+--------------------------------------------------------+"
+	puts "| Ruby backtrace:                                        |"
+	puts "+--------------------------------------------------------+"
 	puts e.backtrace
 	puts e
+	puts "----------------------------------------------------------"
+	exit 1
 end
-
-
-
