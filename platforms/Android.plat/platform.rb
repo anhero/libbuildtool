@@ -20,6 +20,9 @@ module Platforms
 			end
 		end
 
+		def validate!
+		end
+		
 		def permute!
 			@optionParser.permute!
 		end
