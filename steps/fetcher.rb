@@ -70,6 +70,7 @@ class Steps::Fetcher < LBT::StepsFabricator
 				return true
 			end
 			FileUtils.cp_r @path, dest
+			return ::File.exist? dest
 		end
 	end
 
