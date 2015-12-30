@@ -98,7 +98,7 @@ module Platforms
 				"-miphoneos-version-min=7.0",
 				"-arch", @build_options.arch
 			].join(" "))
-			@build_options.CXXFLAGS = @build_options.CFLAGS
+			@build_options.CPPFLAGS = @build_options.CXXFLAGS = @build_options.CFLAGS
 
 			@build_options.LDLAGS << ([
 				#"#{minversion}", # Used? Needed?
