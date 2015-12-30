@@ -84,7 +84,7 @@ module Platforms
 			].join(" "))
 			@build_options.CXXFLAGS = @build_options.CFLAGS
 
-			@build_options.LDLAGS << ([
+			@build_options.LDFLAGS << ([
 				#"-isysroot", @build_options.sdk_root,
 				#"-arch", @build_options.arch
 			].join(" "))

@@ -100,7 +100,7 @@ module Platforms
 			].join(" "))
 			@build_options.CPPFLAGS = @build_options.CXXFLAGS = @build_options.CFLAGS
 
-			@build_options.LDLAGS << ([
+			@build_options.LDFLAGS << ([
 				#"#{minversion}", # Used? Needed?
 				"-isysroot", @build_options.sdk_root,
 				"-arch", @build_options.arch
