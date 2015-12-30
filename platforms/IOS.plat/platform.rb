@@ -190,7 +190,8 @@ module Platforms
 			
 			install_dir = "#{Dir.pwd}/iOS"
 			archs = Dir.entries(install_dir)
-			archs.select! do |arch| not arch == "." and not arch == ".." and not arch == "universal" end
+        
+			archs.select! do |arch| not arch == "." and not arch == ".." and not arch == "universal" and File.directory?("#{install_dir}/#{arch}")  end
 			archs.each do |arch|
 				puts "      Discovered:  #{arch}"
 			end
