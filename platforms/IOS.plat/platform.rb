@@ -16,7 +16,7 @@ module Platforms
 					@build_options.arch = arch
 					if arch and arch.match /arm.*/ then
 						@build_options.configure_options = ""
-					elsif arch and arch.match /x86.*/
+					elsif arch and (arch.match(/x86.*/) or arch.match(/.*86/))
 						@build_options.configure_options = ""
 					elsif arch and arch.match /universal/
 					else
