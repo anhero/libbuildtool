@@ -68,9 +68,9 @@ class ArrayStruct < OpenStruct
 			# Add the new member to the defined methods.
 			new_ostruct_member(mname)
 			# Then use it as it has custom behaviour.
-			self.send(mid, *args)
+			return self.send(mid, *args)
 		elsif len == 0 && mid != :[]
-			self[mid]
+			return self[mid]
 		else
 			raise NoMethodError, "undefined method `#{mid}' for #{self}", caller(1)
 		end
@@ -99,18 +99,15 @@ class ArrayStruct < OpenStruct
 	# @private
 	# @return The name of the new member.
 	def new_ostruct_member(name)
-	  name = name.to_sym
-	  unless respond_to?(name)
-		define_singleton_method(name) { @table[name] }
-		define_singleton_method("#{name}=") { |x| 
+		name = name.to_sym
+		self.define_singleton_method(name) { @table[name] }
+		self.define_singleton_method("#{name}=") { |x|
 			#Automatically wrap in an ArrayStrucElement, unless it is an ArrayStructElement
 			if not x.is_a?(ArrayStructElement) then
 				x = ArrayStructElement.new(x)
 			end
-			@table[name] = x
+			modifiable[name] = x
 		}
-	  end
-	  name
 	end
 end
 
